@@ -1,0 +1,93 @@
+
+
+<!DOCTYPE html>
+<html>
+   <head>
+      <title>CoreESP</title>
+      <style>
+html body{font-family:Sans-Serif;font-size:12px;padding:0;margin:0;} .table{width:94%;text-align:center;background:#eec;border-collapse:collapse;border-top:7px solid #9af;border-bottom:7px solid #9af;border-right:1px solid #dde;border-left:1px solid #dde;margin:5px;} .table th{font-size:15px;font-weight:bold;background:#ccc;color:#666;padding:8px;} .table tr{border-bottom:1px solid #ddd;} .table tr.odd{background:#eed;} .table tr:hover{background:#dde;} .table tr td{width:50%;color:#666;padding:4px;} .table tr td:first-child{white-space:nowrap;font-weight:bold;} .page{margin-left:150px;padding:5px;} .menu{list-style-type:none;margin:0;padding:0;width:130px;background-color:#f1f1f1;height:100%;position:fixed;overflow:auto;white-space:nowrap;} .menu li{text-align:center;border-bottom:1px solid #dde;} li:last-child{border-bottom:none;} .menu li.title{font-size:15px;font-weight:bold;background:#888;color:#ddd;padding:8px;} .menu li a{font-size: 13px;display: block;color: #999;padding:8px 16px;text-decoration:none;} .menu li a.active{background:#e8e8e8;color:#666;font-weight:bold;} .menu li a:hover{background:#dde;color:#666;} </style>
+   </head>
+   <body>
+      <ul class='menu'>
+         <li class='title'>CoreESP</li>
+         <li><a href='.'>Information</a></li>
+         <li><a href='config' class='active'>Config</a></li>
+         <li><a href='hardware'>Hardware</a></li>
+         <li><a href='devices'>Devices</a></li>
+         <li><a href='rules'>Rules</a></li>
+         <li><a href='tools'>Tools</a></li>
+         <li><a href='advanced'>Advanced</a></li>
+      </ul>
+      <form class='page'>
+         <table class='table'>
+            <tr>
+               <th colspan=2>System configuration</th>
+            </tr>
+            <tr>
+               <td>system.name</td>
+               <td><input type='text' name='system.name' value='CoreESP'></td>
+            </tr>
+            <tr class='odd'>
+               <td>system.unit</td>
+               <td><input type='text' name='system.unit' value='0'></td>
+            </tr>
+            <tr>
+               <td>system.pass</td>
+               <td><input type='text' name='system.pass' value='yann'></td>
+            </tr>
+            <tr>
+               <th colspan=2>Wifi configuration</th>
+            </tr>
+            <tr class='odd'>
+               <td>wifi.ssid</td>
+               <td><input type='text' name='wifi.ssid' value='Freebox-5CC705'></td>
+            </tr>
+            <tr>
+               <td>wifi.pass</td>
+               <td><input type='text' name='wifi.pass' value='picari-istic4-edonas2-intellegis'></td>
+            </tr>
+            <tr class='odd'>
+               <td>wifi.ap.ssid</td>
+               <td><input type='text' name='wifi.ap.ssid' value='Yann_0'></td>
+            </tr>
+            <tr>
+               <td>wifi.ap.pass</td>
+               <td><input type='text' name='wifi.ap.pass' value='configesp'></td>
+            </tr>
+            <tr>
+               <th colspan=2>Network configuration</th>
+            </tr>
+            <tr class='odd'>
+               <td>network.ip</td>
+               <td><input type='text' name='network.ip' value='0.0.0.0'></td>
+            </tr>
+            <tr>
+               <td>network.mask</td>
+               <td><input type='text' name='network.mask' value='0.0.0.0'></td>
+            </tr>
+            <tr class='odd'>
+               <td>network.gateway</td>
+               <td><input type='text' name='network.gateway' value='0.0.0.0'></td>
+            </tr>
+            <tr>
+               <td>network.dns</td>
+               <td><input type='text' name='network.dns' value='8.8.8.8'></td>
+            </tr>
+            <tr class='odd'>
+               <td>network.ap.ip</td>
+               <td><input type='text' name='network.ap.ip' value='192.168.12.13'></td>
+            </tr>
+            <tr>
+               <td>network.ap.mask</td>
+               <td><input type='text' name='network.ap.mask' value='255.255.255.0'></td>
+            </tr>
+            <tr class='odd'>
+               <td>network.ap.gateway</td>
+               <td><input type='text' name='network.ap.gateway' value='0.0.0.0'></td>
+            </tr>
+         </table>
+      </form>
+   </body>
+</html>
+
+
