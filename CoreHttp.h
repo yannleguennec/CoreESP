@@ -36,7 +36,7 @@ public:
   static void select(String &html, String name, String js);
   static void select(String &html, char* name = NULL, char* js=NULL);
 //  static void select(String &html, char* name = NULL);
-  static void option(String &html, String name, int value);
+  static void option(String &html, String name, int value, bool selected=false);
   static void input(String &html, String name, String value, bool hide=false);
   static void button(String &reply, String value, String js);
 

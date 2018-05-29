@@ -39,7 +39,7 @@ void CoreSystem::loopSlow(void)
 
     log += F(", Load avg ");
     log += CoreSystem::getLoadAverage();
-    log += F("%");
+    log += '%';
 
     log += F(", FreeMem ");
     log += ESP.getFreeHeap();
@@ -103,7 +103,7 @@ String CoreSystem::IPMaskGW(int interface, bool mask, bool gw)
     
     if (mask)
     {
-      log += F("/");
+      log += '/';
       log += cidr(if_ip.netmask.addr);
     }
     

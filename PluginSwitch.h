@@ -5,9 +5,11 @@
 
 class PluginSwitch : public CorePlugins
 {
-  int  pin;
-  bool inverse;
-  int  state;
+  int  _pin;
+  int  _bootState;
+  int  _type;
+  bool _inverse;
+  int  _state;
 public:
   PluginSwitch(bool first = false);
 
@@ -15,7 +17,10 @@ public:
   
   static void setup();
 
-  void webForm( String &res );
+  String& toString(void) { return CorePlugins::toString() + " (Pin " + _pin + ")"; };
+
+  void webForm(String& html);
+  void webFormSubmit( void );
   
   void loopFast();     // to get switch position
   void loopMedium();   // to send infos

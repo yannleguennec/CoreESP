@@ -1,6 +1,5 @@
 #include "CorePlugins.h"
 
-#define pluginMax 20
 CorePlugins *plugin[ pluginMax ];
 int pluginNb = 0;
 int pluginNo = 0;
@@ -41,62 +40,42 @@ void CorePlugins::loopSlow(void)
   CoreLog::add(LOG_LEVEL_INFO, log);
 }
 
-int CorePlugins::num( int num )
-{
-  if (num) this->_num = num;
-  return this->_num;
-};
-
-String* CorePlugins::name( String* name )
-{
-  if (name) this->_name = *name;
-  return &this->_name;
-};
-
-String* CorePlugins::desc( String* desc ) 
-{
-  if (desc) this->_desc = *desc;
-  return &this->_desc;
-};
-
 void CorePlugins::setup(void)
 {
    String log =  "CorePlugins::setup(void)";
    CoreLog::add(LOG_LEVEL_DEBUG, log);
 
-   CoreHttp::add( "/plugins", CorePlugins::webPlugins );
-   CoreCommands::add("plugins", CorePlugins::listPlugins, "List plugins");
+   CoreHttp::add( "/plugins", CorePlugins::listWeb );
+   CoreCommands::add("plugins", CorePlugins::listCommand, "List plugins");
 }
 
 CorePlugins* CorePlugins::factory() { return NULL; };
 
-void CorePlugins::listPlugins(String &res, char **)
+void CorePlugins::listCommand(String &res, char **)
 {
-  String log =  "";
+  String log;
   log += pluginNb;
-  log += " plugins : ";
+  log += F(" plugins : ");
   CoreLog::add(LOG_LEVEL_INFO, log);
 
   res += log;
-  res += "\n";
+  res += '\n';
 
   CorePlugins *plugin = CorePlugins::first();
   while ( plugin )
   {
-    log = "  ";
-    log += *plugin->name();
-    log += " : ";
-    log += *plugin->desc();
+    log = F("  ");
+    log += plugin->toString();
     CoreLog::add(LOG_LEVEL_INFO, log);
 
     res += log;
-    res += "\n";
+    res += '\n';
 
     plugin = CorePlugins::next();
   }
 }
 
-void CorePlugins::webPlugins(void)
+void CorePlugins::listWeb(void)
 {
 #ifdef LOG_LEVEL_DEBUG
   String log = F("HTTP : GET /plugins");
@@ -119,7 +98,7 @@ void CorePlugins::webPlugins(void)
   CorePlugins *plugin = CorePlugins::first();
   while (plugin)
   {
-    CoreHttp::tableLine(reply, *plugin->name(), *plugin->desc());
+    CoreHttp::tableLine(reply, plugin->name(), plugin->desc());
     plugin = CorePlugins::next();
   }
 
@@ -127,6 +106,28 @@ void CorePlugins::webPlugins(void)
   CoreHttp::pageFooter(reply);
   
   WebServer.send(200, texthtml, reply);
+}
+
+void CorePlugins::webForm(String& html)
+{
+  String line, form;
+  line = F("Topic");
+  form = F("<input type='text' name='topic' value=\"");
+  form += _topic;
+  form += F("\">");
+  CoreHttp::tableLine(html, line, form);
+  
+  line = F("Comment");
+  form = F("<input type='text' name='comment' value=\"");
+  form += _comment;
+  form += F("\">");
+  CoreHttp::tableLine(html, line, form);
+}
+
+void CorePlugins::webFormSubmit( void )
+{
+  _topic = WebServer.arg(F("topic"));
+  _comment = WebServer.arg(F("comment"));
 }
 
 CorePlugins* CorePlugins::first(void)

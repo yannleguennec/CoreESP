@@ -1,5 +1,4 @@
 #include "CoreSettings.h"
-#include "CoreDefaults.h"
 
 #define settingMax 50
 Setting setting[settingMax];
@@ -188,15 +187,12 @@ void CoreSettings::save(String &res, char **blocks)
   log = F("SETS : Saving configuration to flash...");
   CoreLog::add(LOG_LEVEL_DEBUG, log);
 #endif
-  res += "Settings saved";
+  res += F("Settings saved");
   log = F("SETS : ");
   log += res;
   log += '.';
   CoreLog::add(LOG_LEVEL_INFO, log);
 }
-
-#define settingName   block[1]
-#define settingValue  block[2]
 
 int CoreSettings::search(char *str)
 {
@@ -227,6 +223,9 @@ void CoreSettings::display(String &res, int settingNo)
   log += res;
   CoreLog::add(LOG_LEVEL_INFO, log);
 }
+
+#define settingName   block[1]
+#define settingValue  block[2]
 
 void CoreSettings::set(String &res, char **block)
 {

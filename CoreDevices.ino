@@ -1,44 +1,19 @@
 #include "CoreDevices.h"
 
 #define deviceMax 10
-CoreDevices device[deviceMax];
-int deviceNb = 10;
+CorePlugins *device[deviceMax];
 int deviceNo = 0;
 
-int CoreDevices::num(int num)
-{
-  if (num) this->_num = num;
-  return this->_num;
-}
-
-String* CoreDevices::name(String* name)
-{
-  if (name) this->_name = *name;
-  return &this->_name;
-}
-
-String* CoreDevices::desc(String* desc)
-{
-  if (desc) this->_desc = *desc;
-  return &this->_desc;
-}
-
-#define forEachDevice(func) for(int deviceNo=0; deviceNo < deviceNb; deviceNo++) { if (device[ deviceNo ].plugin) device[ deviceNo ].plugin->func(); }
-CoreDevices::CoreDevices(void)
-{
-}
+#define forEachDevice(func) for(int deviceNo=0; deviceNo < deviceMax; deviceNo++) { if (device[ deviceNo ]) device[ deviceNo ]->func(); }
 
 void CoreDevices::setup(void)
 {
-  WebServer.on( "/devices", CoreDevices::devicesWeb );
-  CoreHttp::add("/devices", CoreDevices::deviceWeb);
-  CoreCommands::add("devices", CoreDevices::deviceCommand, "List the devices");
+  CoreHttp::add("/devices", CoreDevices::listWeb);
+  CoreHttp::add("/device", CoreDevices::setWeb);
 
-  for ( int deviceNo = 0; deviceNo < deviceMax; deviceNo++ )
-  {
-    device[ deviceNo ].num( deviceNo + 1 );
-    device[ deviceNo ].plugin = NULL;
-  }
+  CoreCommands::add("devices", CoreDevices::listCommand, "List the devices");
+  CoreCommands::add("device", CoreDevices::setCommand, "Configure or display device");
+
   forEachDevice(setup);
 }
 
@@ -57,33 +32,41 @@ void CoreDevices::loopFast(void)
   forEachDevice(loopFast);
 };
 
-void CoreDevices::devicesCommand(String& res, char** block)
+void CoreDevices::listCommand(String& res, char** block)
 {
-  String log = "Devices :";
+  String log = F("Devices :");
   CoreLog::add(LOG_LEVEL_INFO, log);
 
   for (int deviceNo = 0; deviceNo < deviceMax; deviceNo++)
   {
-    log = "  ";
+    log = F("  ");
+    if (deviceNo < 10) log += " ";
     log += deviceNo;
-    log += " : ";
-    log += *device[ deviceNo ].name();
-    log += " (";
-    if (device[ deviceNo ].plugin)
-      log += *device[ deviceNo ].plugin->name();
-    log += ")";
-    CoreLog::add(LOG_LEVEL_INFO, log);
+    log += F(" : ");
 
+    if (device[ deviceNo ])
+    {
+      log += device[ deviceNo ]->topic();
+      log += F(" (");
+      log += device[ deviceNo ]->name();
+      log += F(")");
+    }
+    else log += F("None");
+
+    CoreLog::add(LOG_LEVEL_INFO, log);
     res += log;
   }
 }
 
-void CoreDevices::deviceCommand(String& res, char** block)
+void CoreDevices::setCommand(String& res, char** block)
 {
-  
+  String log = F("Device :");
+  CoreLog::add(LOG_LEVEL_INFO, log);
+
+
 }
 
-void CoreDevices::devicesWeb(void)
+void CoreDevices::listWeb(void)
 {
 #ifdef LOG_LEVEL_DEBUG
   String log = F("HTTP : GET /devices");
@@ -93,73 +76,139 @@ void CoreDevices::devicesWeb(void)
   if (!CoreHttp::isLoggedIn())
     return;
 
-  String reply, line, res;
+  String html, line, res;
 
-  CoreHttp::pageHeader(reply, MENU_DEVICES);
-  reply += res;
+  CoreHttp::pageHeader(html, MENU_DEVICES);
+  html += res;
 
-  reply += F("<table class='table'>");
+  html += F("<table class='table'>");
 
   line = F("Devices list");
-  CoreHttp::tableHeader(reply, line);
-  
-  CoreDevices *device = CoreDevices::first();
-  while (device)
+  CoreHttp::tableHeader(html, line);
+
+  for (deviceNo = 0; deviceNo < deviceMax; deviceNo++)
   {
     String title, form;
-    title += device->num();
-    title += " : ";
-    title += *device->name();
+    title += deviceNo;
+    title += F(" : ");
 
-    String name = "device_";
-    name += device->num();
-
-    String js = "loading.style.visibility = 'visible'";
-    CoreHttp::select(form, name, js);
-    CoreHttp::option(form, "None", 0);
-    CorePlugins *plugin = CorePlugins::first();
-    while (plugin)
+    if (device[ deviceNo ])
     {
-      name = *plugin->name();
-      name += " : ";
-      name += *plugin->desc();
-      
-      CoreHttp::option(form, name, plugin->num());
+      title += device[ deviceNo ]->topic();
 
-      plugin = CorePlugins::next();
+      String name = F("device_");
+      name += deviceNo;
+
+      form = device[ deviceNo ]->toString();
     }
-    CoreHttp::select(form);
+    else
+      form = F("None");
 
-    String url = "/devices?dn=";
-    url += device->num();    
+    String url = F("/devices?dn=");
+    url += deviceNo;
     CoreHttp::button(form, "Modify", url);
-    
-    CoreHttp::tableLine(reply, title, form);
-    device = CoreDevices::next();
+
+    CoreHttp::tableLine(html, title, form);
   }
-  
-  reply += F("</table>");
-  
-  CoreHttp::pageFooter(reply);
-  WebServer.send(200, texthtml, reply);
+
+  html += F("</table>");
+
+  CoreHttp::pageFooter(html);
+  WebServer.send(200, texthtml, html);
 }
 
-void CoreDevices::deviceWeb(void)
+// Check range excluding max
+#define checkRangeEx( val, min, max ) { if ( (val) < (min) ) (val) = (min); if ( (val) >= (max) ) (val) = (max); }
+// Check range including max
+#define checkRangeIn( val, min, max ) { if ( (val) < (min) ) (val) = (min); if ( (val) >  (max) ) (val) = (max); }
+
+void CoreDevices::setupPlugin(int &deviceId, int pluginId)
 {
-  
+  checkRangeEx( deviceId, 0, deviceMax );
+  if (pluginId)
+  {
+    if (!device[ deviceId ])
+      // Create plugin
+      device[ deviceId ] = plugin[ pluginId ]->factory();
+    else
+    {
+      // Check plugin
+      if (device[ deviceId ]->num() != pluginId)
+      {
+        // Change plugin
+        delete device[ deviceId ];
+        device[ deviceId ] = plugin[ pluginId ]->factory();
+      }
+    }
+  }
+  else
+  {
+    // Remove plugin
+    if (device[ deviceId ])
+      delete device[ deviceId ];
+    device[ deviceId ] = NULL;
+  }
 }
 
-CoreDevices* CoreDevices::first(void)
+void CoreDevices::setWeb(void)
 {
-  deviceNo = 0;
-  return &device[ deviceNo ];
+  int deviceId = atoi( WebServer.arg("id").begin() );
+
+#ifdef LOG_LEVEL_DEBUG
+  String log = F("HTTP : GET /device?id=");
+  log += deviceId;
+  CoreLog::add(LOG_LEVEL_DEBUG, log);
+#endif
+
+  if (!CoreHttp::isLoggedIn())
+    return;
+
+  int pluginId = atoi( WebServer.arg("pluginId").begin() );
+  checkRangeEx( pluginId, 0, pluginNb);
+
+  setupPlugin(deviceId, pluginId);
+  if (device[ deviceId ])
+    // Update plugin
+    device[ deviceId ]->webFormSubmit();
+
+  // Display device
+  String html, line, res, form;
+
+  CoreHttp::pageHeader(html, MENU_DEVICES);
+  html += res;
+
+  html += F("<table class='table'>");
+
+  line = F("Device ");
+  log += deviceId;
+  CoreHttp::tableHeader(html, line);
+
+  line = F("Plugin");
+  form = "";
+  CoreHttp::select(form, "pluginId");
+  CoreHttp::option(form, "None", 0);
+  CorePlugins *plugin = CorePlugins::first();
+  while (plugin)
+  {
+    String name = plugin->toString();
+
+    // Manque le option active !!!
+    bool selected = device[ deviceId ]->num() == plugin->num();
+    CoreHttp::option(form, name, plugin->num(), selected);
+
+    plugin = CorePlugins::next();
+  }
+  CoreHttp::select(form);
+  CoreHttp::tableLine(html, line, form);
+
+  if (device[ deviceId ])
+    device[ deviceId ]->webForm(html);
+
+  html += F("</table>");
+
+  CoreHttp::pageFooter(html);
+  WebServer.send(200, texthtml, html);
 }
 
-CoreDevices* CoreDevices::next(void)
-{
-  if ( ++deviceNo >= deviceNb)
-    return NULL;
-  return &device[ deviceNo ];
-}
 
 

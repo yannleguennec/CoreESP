@@ -29,13 +29,27 @@ void CoreCommands::setup(void)
 void CoreCommands::add(String cmd, void(*func)(String &, char**), String desc)
 {
   String log;
+
+  // Check if command already exists, if so, ignore with log.
+  for(int commandNo=0; commandNo < commandNb; commandNo++)
+  {
+    if (command[commandNo].cmd == cmd) 
+    {
+      log = F("CMDS : Command ");
+      log += cmd;
+      log += F(" already added.");
+      CoreLog::add(LOG_LEVEL_ERROR, log);
+      return;
+    }
+  }
+      
   if (commandNb < commandMax)
   {
     // Add a command to the interpreter
 #ifdef LOG_LEVEL_DEBUG_MORE
-    log = "CMDS : Adding command '";
+    log = F("CMDS : Adding command '");
     log += cmd;
-    log += "'";
+    log += '\'';
     CoreLog::add(LOG_LEVEL_DEBUG_MORE, log);
 #endif
 
@@ -76,14 +90,18 @@ bool CoreCommands::execute(String &res, String &str)
   //
   // TODO : Backslash escapement is not functionnal yet
 
-  CoreCommands::split(str, block) &&
-    CoreCommands::run(res, block) ||
-      CoreCommands::notFound(res, str);
+  if (!CoreCommands::split(str, block))
+  {
+    if (!CoreCommands::run(res, block))
+      return CoreCommands::notFound(res, str);
+    else return true;
+  }
+  return false;
 }
 
 bool CoreCommands::split(String &str, char **block)
 {
-  int blockNo, blockNb = 0;
+  int blockNb = 0;
   char *line = str.begin();
 
   // Initialize blocks.
@@ -179,6 +197,7 @@ bool CoreCommands::run(String &res, char **block)
 
 bool CoreCommands::notFound(String &res, String &line)
 {
+  return false;
 }
 
 int CoreCommands::search(String str)
@@ -232,7 +251,7 @@ void CoreCommands::info(String &res, char **block)
   CoreLog::add(LOG_LEVEL_INFO, log);
 
   log = head;
-  log += F("Full Version : ");
+  log += F("Full version : ");
   log += ESP.getFullVersion();
   CoreLog::add(LOG_LEVEL_INFO, log);
 

@@ -117,7 +117,7 @@ void CoreWifi::displayState()
   }
   log += F(" (");
   log += wifiState;
-  log += F(")");
+  log += ')';
   CoreLog::add(LOG_LEVEL_DEBUG_EVEN_MORE, log);
 #endif
 }
@@ -149,9 +149,9 @@ void CoreWifi::displayStatus()
     default:
       log += WiFi.status();
   }
-  log += F("(");
+  log += '(';
   log += WiFi.status();
-  log += F(")");
+  log += ')';
   CoreLog::add(LOG_LEVEL_DEBUG_EVEN_MORE, log);
 #endif
 }
@@ -392,7 +392,7 @@ void CoreWifi::connect(void)
 
   log = F("WIFI : Connecting to SSID '");
   log += ssid->begin();
-  log += F("'");
+  log += '\'';
   CoreLog::add(LOG_LEVEL_INFO, log);
 
   // IF IPFIXED

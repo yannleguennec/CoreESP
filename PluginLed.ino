@@ -8,51 +8,65 @@ PluginLed::PluginLed(bool first) :
 
 void PluginLed::setup(void)
 {
-  String log = F("PluginSwitch Initialization.");
+  String log = F("PluginLed Initialization.");
   CoreLog::add(LOG_LEVEL_INFO, log);
 }
 
 CorePlugins* PluginLed::factory(void) 
 {
-  return new PluginLed();
+  CorePlugins* plugin = new PluginLed();
+  plugin->num(_num);
+  return plugin;
 }
 
-void PluginLed::webForm( String &res )
+void PluginLed::webForm( String &html )
 {
-  String optionsType[] = { F("Switch"), F("Dimmer"), "" };
-  String optionsPin[] = { "1", "3", "5", "7", "" };
-  String html;
+  String line;
+  
+  CorePlugins::webForm(html);
+  
+  String optionsType[] = { "OnOff", "PWM" };
+  String optionsPin[] = { "1", "3", "5", "7"};
   int optionNo;
 
-  // Choose name
-  html = "";
-  CoreHttp::input(res, "name", "thename");
-  CoreHttp::tableLine(res, "Name", html);
-
   // Select switch type
-  CoreHttp::select(html, "type");
-  html = "";
-  optionNo=0;
-  while ( optionsType[ optionNo ] != "" )
-    CoreHttp::option(html, optionsType[ optionNo ], optionNo);
-  CoreHttp::select(html);
-  CoreHttp::tableLine(res, "Type", html);
+  line = "";
+  CoreHttp::select(line, "type");
+  for( int optionNo=0; optionNo< sizeof(optionsType) / sizeof(String); optionNo++ )
+    CoreHttp::option(line, optionsType[ optionNo ], optionNo);
+  CoreHttp::select(line);
+  CoreHttp::tableLine(html, "Type", line);
 
   // Select switch pin
-  CoreHttp::select(html, "pin");
-  html = "";
+  CoreHttp::select(line, "pin");
+  line = "";
   optionNo=0;
   while ( optionsPin[ optionNo ] != "" )
-    CoreHttp::option(html, optionsPin[ optionNo ], optionNo);
-  CoreHttp::select(html);
-  CoreHttp::tableLine(res, "Pin", html);
+    CoreHttp::option(line, optionsPin[ optionNo ], optionNo);
+  CoreHttp::select(line);
+  CoreHttp::tableLine(html, "Pin", line);
+
+  line="";
+  CoreHttp::select(line, "state");
+  CoreHttp::option(line, "Off", 0);
+  CoreHttp::option(line, "On", 1);
+  CoreHttp::select(line);
+  CoreHttp::tableLine(html, "Boot state", line);
+}
+
+void PluginLed::webFormSubmit( void )
+{
+  CorePlugins::webFormSubmit();
+  _type = atoi( WebServer.arg("type").begin() );
+  _pin = atoi( WebServer.arg("type").begin() );
+  _bootState = atoi( WebServer.arg("type").begin() );
 }
 
 void PluginLed::loopFast(void)
 {
   static int lastButtonState = -1;
   static unsigned long lastDebounceTime = 0;
-  int reading = digitalRead( this->pin );
+  int reading = digitalRead( this->_pin );
 
   if (reading != lastButtonState) {
     // reset the debouncing timer
@@ -62,17 +76,17 @@ void PluginLed::loopFast(void)
   #define debounceDelay 50
   if ((millis() - lastDebounceTime) > debounceDelay)
   {
-     if (reading != this->state)
-      this->state = reading;
+     if (reading != this->_state)
+      this->_state = reading;
       String log = "Button change : ";
-      log += this->state;
+      log += this->_state;
       CoreLog::add(LOG_LEVEL_INFO, log);
   }
 }
 
 void PluginLed::loopMedium(void)
 {
-  String log = F("PluginSwitch top");
+  String log = F("PluginLed top");
   CoreLog::add(LOG_LEVEL_INFO, log);
   log = "@";
   log += (int)this;

@@ -28,7 +28,7 @@ void CoreLog::add( byte logLevel, String &msg )
   {
     Serial.print( F("Log level overflow (") );
     Serial.print(logLevel);
-    Serial.print( F(">") );
+    Serial.print( '>' );
     Serial.print(logLevelMax);
     Serial.println( F(").") );
     return;
@@ -56,7 +56,7 @@ void CoreLog::display(String &line, Log *log )
   char str[11];
   int logLevel = log->logLevel;
   
-  sprintf(str, "%10u", log->logTime);
+  sprintf(str, "%10l", log->logTime);
   line += str;
   line += " : ";
   line += logLevelMsg[ logLevel - 1 ];
