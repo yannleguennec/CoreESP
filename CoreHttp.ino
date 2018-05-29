@@ -73,27 +73,27 @@ void CoreHttp::setup()
   WebServer.begin();
 }
 
-inline void CoreHttp::loop()
+void CoreHttp::loop()
 {
   WebServer.handleClient();
 }
 
-inline void CoreHttp::loopMedium()
+void CoreHttp::loopMedium()
 {
   if (loginTimeout)
   {
     String log;
 
     loginTimeout--;
-#ifdef LOG_LEVEL_DEBUG
-    log = F("HTTP : loginTimeout... ");
+#ifndef LOG_LEVEL_DEBUG
+    log = F("HTTP : LoginTimeout... ");
     log += loginTimeout;
     CoreLog::add(LOG_LEVEL_DEBUG, log);
 #endif
     if (!loginTimeout)
     {
-      log = F("HTTP : Logged out.");
-      CoreLog::add(LOG_LEVEL_INFO, log);
+        log = F("HTTP : Logged out.");        
+        CoreLog::add(LOG_LEVEL_INFO, log);
     }
   }
 }
