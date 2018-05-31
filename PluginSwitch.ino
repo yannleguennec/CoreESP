@@ -1,65 +1,71 @@
 #include "PluginSwitch.h"
 
-PluginSwitch::PluginSwitch(bool first) : 
-  CorePlugins( "Switch", "handle input switch", first )
-{
-  Serial.println("This is PluginSwitch");
-}
-
 void PluginSwitch::setup(void)
 {
+#ifdef LOG_LEVEL_PANIC
+  Serial.println(__PRETTY_FUNCTION__);
+#endif
   String log = F("PluginSwitch Initialization.");
   CoreLog::add(LOG_LEVEL_INFO, log);
 }
 
 CorePlugins* PluginSwitch::factory(void)
 {
+#ifdef LOG_LEVEL_PANIC
+  Serial.println(__PRETTY_FUNCTION__);
+#endif
   CorePlugins* plugin = new PluginSwitch();
-  plugin->num(_num); // Set new device number to actuel plugin number
+  Serial.print( " setting pluginNumber=");
+  Serial.print( _pluginNumber );
+
+  plugin->pluginNumber(_pluginNumber); // Set the plugin number to the new device
   return plugin;
 }
 
 void PluginSwitch::webForm( String &html )
 {
+#ifdef LOG_LEVEL_PANIC
+  Serial.println(__PRETTY_FUNCTION__);
+#endif
   String line;
   
   CorePlugins::webForm(html);
-  
-  String optionsType[] = { "Switch", "Dimmer" };
-  String optionsPin[] = { "1", "3", "5", "7"};
-  int optionNo;
 
   // Select switch type
   line = "";
   CoreHttp::select(line, "type");
-  for( int optionNo=0; optionNo< sizeof(optionsType) / sizeof(String); optionNo++ )
-    CoreHttp::option(line, optionsType[ optionNo ], optionNo);
+  CoreHttp::option(line, "Switch", 0);
+  CoreHttp::option(line, "Dimmer", 1);
   CoreHttp::select(line);
   CoreHttp::tableLine(html, "Type", line);
 
-  // Select switch pin
-  CoreHttp::select(line, "pin");
-  line = "";
-  optionNo=0;
-  while ( optionsPin[ optionNo ] != "" )
-    CoreHttp::option(line, optionsPin[ optionNo ], optionNo);
+    // Select switch pin
+  line="";
+  CoreHttp::select(line, "pin");  
+  CoreHttp::option(line, "1", 1);
+  CoreHttp::option(line, "3", 3);
+  CoreHttp::option(line, "5", 5);
+  CoreHttp::option(line, "7", 7);
   CoreHttp::select(line);
   CoreHttp::tableLine(html, "Pin", line);
 
   line="";
-  CoreHttp::select(line, "state");
-  CoreHttp::option(line, "Off", 0);
-  CoreHttp::option(line, "On", 1);
+  CoreHttp::select(line, "inverse");
+  CoreHttp::option(line, "No", 0);
+  CoreHttp::option(line, "Yes", 1);
   CoreHttp::select(line);
-  CoreHttp::tableLine(html, "Boot state", line);
+  CoreHttp::tableLine(html, "Inverse", line);
 }
 
-void PluginSwitch::webFormSubmit( void )
+void PluginSwitch::webSubmit( void )
 {
-  CorePlugins::webFormSubmit();
+#ifdef LOG_LEVEL_PANIC
+  Serial.println(__PRETTY_FUNCTION__);
+#endif
+  __super::webSubmit();
   _type = atoi( WebServer.arg("type").begin() );
-  _pin = atoi( WebServer.arg("type").begin() );
-  _bootState = atoi( WebServer.arg("type").begin() );
+  _pin = atoi( WebServer.arg("pin").begin() );
+  _inverse = atoi( WebServer.arg("inverse").begin() );
 }
 
 void PluginSwitch::loopFast(void)
@@ -86,6 +92,9 @@ void PluginSwitch::loopFast(void)
 
 void PluginSwitch::loopMedium(void)
 {
+#ifdef LOG_LEVEL_PANIC
+  Serial.println(__PRETTY_FUNCTION__);
+#endif
   String log = F("PluginSwitch top");
   CoreLog::add(LOG_LEVEL_INFO, log);
   
@@ -94,5 +103,5 @@ void PluginSwitch::loopMedium(void)
   CoreLog::add(LOG_LEVEL_INFO, log);
 }
 
-PluginSwitch pluginSwitch(true);
+PluginSwitch pluginSwitch("Switch", "Handle input switch");
 

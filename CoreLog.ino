@@ -16,6 +16,9 @@ char *logLevelMsg[logLevelMax+1] = { "<ERR > ", "<INFO> ", "<DEBG> ", "<DBG+> ",
 
 void CoreLog::setup(void)
 {
+#ifdef LOG_LEVEL_PANIC
+  Serial.println(__PRETTY_FUNCTION__);
+#endif
 #ifdef LOG_LEVEL_DEBUG
   String log = F( "LOGS : Initialization." );
   CoreLog::add(LOG_LEVEL_DEBUG, log );
@@ -24,6 +27,11 @@ void CoreLog::setup(void)
 
 void CoreLog::add( byte logLevel, String &msg ) 
 {
+#ifdef LOG_LEVEL_PANIC
+  Serial.println(__PRETTY_FUNCTION__);
+#endif
+
+  // Warning, if faudrait éviter de stocker les logs quand le level est pas utile !!!
   if (logLevel > logLevelMax)
   {
     Serial.print( F("Log level overflow (") );
@@ -53,10 +61,13 @@ void CoreLog::add( byte logLevel, String &msg )
 
 void CoreLog::display(String &line, Log *log )
 {
-  char str[11];
+#ifdef LOG_LEVEL_PANIC
+  Serial.println(__PRETTY_FUNCTION__);
+#endif
+  char str[12] = "";;
   int logLevel = log->logLevel;
   
-  sprintf(str, "%10l", log->logTime);
+  sprintf(str, "%10lu", log->logTime);
   line += str;
   line += " : ";
   line += logLevelMsg[ logLevel - 1 ];
@@ -68,6 +79,9 @@ void CoreLog::flushSerial(void)
 {
   if (CoreSerial::isActive())
   {
+#ifdef LOG_LEVEL_PANIC
+  Serial.println(__PRETTY_FUNCTION__);
+#endif
     // Flush the logBuffer for Serial
     if ( logReadPtrSerial != logWritePtr )
     {
@@ -90,6 +104,9 @@ void CoreLog::flushSerial(void)
 
 Log *CoreLog::first(void)
 {
+#ifdef LOG_LEVEL_PANIC
+  Serial.println(__PRETTY_FUNCTION__);
+#endif
   logIterPtr = logWritePtr;
   logIncr( logIterPtr );
   return &logs[ logIterPtr ];
@@ -97,6 +114,9 @@ Log *CoreLog::first(void)
 
 Log *CoreLog::next(void)
 {
+#ifdef LOG_LEVEL_PANIC
+  Serial.println(__PRETTY_FUNCTION__);
+#endif
   if (logWritePtr == logIterPtr) 
     return NULL;
   

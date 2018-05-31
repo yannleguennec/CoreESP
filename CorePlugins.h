@@ -5,46 +5,45 @@ class CorePlugins
 {
 protected:
   // Infos du plugin
-  int    _num;
-  String _name;
-  String _desc;
+  int    _pluginNumber;
+  String _pluginName;
+  String _pluginDesc;
 
   // Infos du device
-  String _topic;
-  String _comment;
+  String _deviceTopic;
+  String _deviceComment;
   
 public:
-  CorePlugins(bool first = false);
-  CorePlugins(const char *name, const char *desc, bool first = false);
+  CorePlugins(void) {};
+  CorePlugins(String pluginName, String pluginDesc);
+  void registerPlugin();
 
   void loopFast(void);
   void loopMedium(void);
   void loopSlow(void);
 
-  CorePlugins* factory(void);
+  virtual CorePlugins* factory(void);
   
-  void num( int num ) { _num = num; };
-  int num( void ) { return _num; };
+  void pluginNumber( int pluginNumber ) { _pluginNumber = pluginNumber; };
+  int pluginNumber( void ) { return _pluginNumber; };
   
-  void name( String& name ) { _name = name; };
-  String& name( void ) { return _name; };
+  void pluginName( String& pluginName ) { _pluginName = pluginName; };
+  String& pluginName( void ) { return _pluginName; };
   
-  void desc( String& desc ) { _desc = desc; };
-  String& desc( void ) { return _desc; };
+  void pluginDesc( String& pluginDesc ) { _pluginDesc = pluginDesc; };
+  String& pluginDesc( void ) { return _pluginDesc; };
 
-  String& toString(void) { return _name + " : " + _desc; };
+  String toString(void) { return _pluginName + " : " + _pluginDesc; };
 
-  void webForm(String& html);
-  void webFormSubmit( void );
+  virtual void webMenu(String& html, int activeMenu);
+  virtual void webForm(String& html);
+  virtual void webSubmit( void );
 
+  void deviceTopic( String& deviceTopic ) { _deviceTopic = deviceTopic; };
+  String& deviceTopic( void ) { return _deviceTopic; };
   
-  void topic( String topic ) { _topic = topic; };
-  void topic( String& topic ) { _topic = topic; };
-  String& topic( void ) { return _topic; };
-  
-  void comment( String comment ) { _comment = comment; };
-  void comment( String& comment ) { _comment = comment; };
-  String& comment( void ) { return _comment; };
+  void deviceComment( String& deviceComment ) { _deviceComment = deviceComment; };
+  String& deviceComment( void ) { return _deviceComment; };
 
   static void setup(void);
   

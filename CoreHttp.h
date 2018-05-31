@@ -6,12 +6,11 @@
 #define MENU_OFF      0
 #define MENU_INFO     1
 #define MENU_CONFIG   2
-#define MENU_HARDWARE 3
-#define MENU_PLUGINS  4
-#define MENU_DEVICES  5
-#define MENU_RULES    6
-#define MENU_TOOLS    7
-#define MENU_ADVANCED 8
+#define MENU_PLUGINS  3
+#define MENU_DEVICES  4
+#define MENU_RULES    5
+#define MENU_TOOLS    6
+#define MENU_ADVANCED 7
 
 #include <ESP8266WebServer.h>
 extern ESP8266WebServer WebServer;
@@ -33,12 +32,10 @@ public:
   // HTML helper functions
   static void tableHeader(String &html, String section);
   static void tableLine(String &hrml, String title, String value);
-  static void select(String &html, String name, String js);
-  static void select(String &html, char* name = NULL, char* js=NULL);
-//  static void select(String &html, char* name = NULL);
+  static void select(String &html, String name="", String js="");
   static void option(String &html, String name, int value, bool selected=false);
   static void input(String &html, String name, String value, bool hide=false);
-  static void button(String &reply, String value, String js);
+  static void button(String &html, String value, String url="");
 
   static bool isLoggedIn();
 

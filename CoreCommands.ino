@@ -14,6 +14,9 @@ int commandNb = 0;
 
 void CoreCommands::setup(void)
 {
+#ifdef LOG_LEVEL_PANIC
+  Serial.println(__PRETTY_FUNCTION__);
+#endif
 #ifdef LOG_LEVEL_DEBUG
   String log = F("CMDS : Initialization.");
   CoreLog::add(LOG_LEVEL_DEBUG, log);
@@ -28,6 +31,9 @@ void CoreCommands::setup(void)
 
 void CoreCommands::add(String cmd, void(*func)(String &, char**), String desc)
 {
+#ifdef LOG_LEVEL_PANIC
+  Serial.println(__PRETTY_FUNCTION__);
+#endif
   String log;
 
   // Check if command already exists, if so, ignore with log.
@@ -67,6 +73,9 @@ void CoreCommands::add(String cmd, void(*func)(String &, char**), String desc)
 
 bool CoreCommands::execute(String &res, String &str)
 {
+#ifdef LOG_LEVEL_PANIC
+  Serial.println(__PRETTY_FUNCTION__);
+#endif
   #define blockMax (commandArgs + 1)
   char *block[blockMax];
 
@@ -90,7 +99,7 @@ bool CoreCommands::execute(String &res, String &str)
   //
   // TODO : Backslash escapement is not functionnal yet
 
-  if (!CoreCommands::split(str, block))
+  if (CoreCommands::split(str, block))
   {
     if (!CoreCommands::run(res, block))
       return CoreCommands::notFound(res, str);
@@ -101,6 +110,9 @@ bool CoreCommands::execute(String &res, String &str)
 
 bool CoreCommands::split(String &str, char **block)
 {
+#ifdef LOG_LEVEL_PANIC
+  Serial.println(__PRETTY_FUNCTION__);
+#endif
   int blockNb = 0;
   char *line = str.begin();
 
@@ -147,6 +159,9 @@ bool CoreCommands::split(String &str, char **block)
 
 bool CoreCommands::run(String &res, char **block)
 {
+#ifdef LOG_LEVEL_PANIC
+  Serial.println(__PRETTY_FUNCTION__);
+#endif
   String log;
 
 #ifdef LOG_LEVEL_DEBUG
@@ -197,11 +212,17 @@ bool CoreCommands::run(String &res, char **block)
 
 bool CoreCommands::notFound(String &res, String &line)
 {
+#ifdef LOG_LEVEL_PANIC
+  Serial.println(__PRETTY_FUNCTION__);
+#endif
   return false;
 }
 
 int CoreCommands::search(String str)
 {
+#ifdef LOG_LEVEL_PANIC
+  Serial.println(__PRETTY_FUNCTION__);
+#endif
   int commandNo;
   for (commandNo = 0; commandNo < commandNb; commandNo++)
     if (str == command[ commandNo ].cmd)
@@ -212,6 +233,9 @@ int CoreCommands::search(String str)
 
 void CoreCommands::display(int commandNo)
 {
+#ifdef LOG_LEVEL_PANIC
+  Serial.println(__PRETTY_FUNCTION__);
+#endif
   String log = F("CMDS :    ");
   log += command[commandNo].cmd;
   log += F(" : ");
@@ -221,6 +245,9 @@ void CoreCommands::display(int commandNo)
 
 void CoreCommands::info(String &res, char **block)
 {
+#ifdef LOG_LEVEL_PANIC
+  Serial.println(__PRETTY_FUNCTION__);
+#endif
   String head = F("CMDS :    ");
   String log = F("CMDS : Informations :");
   CoreLog::add(LOG_LEVEL_INFO, log);
@@ -329,6 +356,9 @@ void CoreCommands::info(String &res, char **block)
 
 void CoreCommands::restart(String &res, char **block)
 {
+#ifdef LOG_LEVEL_PANIC
+  Serial.println(__PRETTY_FUNCTION__);
+#endif
   String log;
   log = F("SYST : Restarting the device...");
   CoreLog::add(LOG_LEVEL_INFO, log);
@@ -338,6 +368,9 @@ void CoreCommands::restart(String &res, char **block)
 
 void CoreCommands::reboot(String &res, char **block)
 {
+#ifdef LOG_LEVEL_PANIC
+  Serial.println(__PRETTY_FUNCTION__);
+#endif
   String log;
   log = F("SYST : Rebooting the device...");
   CoreLog::add(LOG_LEVEL_INFO, log);
@@ -347,6 +380,9 @@ void CoreCommands::reboot(String &res, char **block)
 
 void CoreCommands::help(String &res, char **block)
 {
+#ifdef LOG_LEVEL_PANIC
+  Serial.println(__PRETTY_FUNCTION__);
+#endif
   int commandNo;
   String log;
 

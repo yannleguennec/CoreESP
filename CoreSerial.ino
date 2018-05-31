@@ -8,6 +8,9 @@ bool serialActive = false;
 
 void CoreSerial::setup(void)
 {
+#ifdef LOG_LEVEL_PANIC
+  Serial.println(__PRETTY_FUNCTION__);
+#endif
   serialActive = true;
 #ifndef LOG_LEVEL_DEBUG
   CoreLog::add(LOG_LEVEL_DEBUG, "SERI : Initialization.");
@@ -18,6 +21,9 @@ void CoreSerial::loop(void)
 {
   if (Serial.available())
   {
+#ifdef LOG_LEVEL_PANIC
+  Serial.println(__PRETTY_FUNCTION__);
+#endif
     byte charIn = Serial.read();
     if (isprint(charIn))
     {

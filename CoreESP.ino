@@ -32,7 +32,7 @@ void setup(void)
   CorePlugins::setup();
   CoreDevices::setup();
   CoreWifi::setup();
-  //CoreMqtt::setup();
+//  //CoreMqtt::setup();
 
   pinMode(LED_BUILTIN, OUTPUT);
 }
@@ -55,7 +55,7 @@ void ledToggle(void)
 
 void loopFast(void)
 {
-  CoreDevices::loopMedium();
+  CoreDevices::loopFast();
   ledToggle();
 }
 
@@ -69,7 +69,7 @@ void loopMedium(void)
 void loopSlow(void)
 {
   CoreSystem::loopSlow();
-  CoreDevices::loopMedium();
+  CoreDevices::loopSlow();
 }
 
 void loop(void)
@@ -81,5 +81,7 @@ void loop(void)
   schedule( loopFast,    loopFastDelay );
   schedule( loopMedium,  loopMediumDelay  );
   schedule( loopSlow,    loopSlowDelay );
+
+  yield();
 }
 

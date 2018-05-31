@@ -11,6 +11,10 @@
 #define LOG_LEVEL_DEBUG_EVEN_MORE 5
 #define LOG_LEVEL_ALL             255
 
+// Define this and display almost all functions prototype to serial as they are executed.
+// Excluded functions are loop and loopFast
+//#define LOG_LEVEL_PANIC 1
+
 class Log
 {
 public:

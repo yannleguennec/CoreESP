@@ -8,7 +8,8 @@
 #define DEFAULT_BUILD         CoreSystem::getBuild()
 #define DEFAULT_NOTES         "Alpha version"
 #define DEFAULT_UNIT          0
-#define DEFAULT_PASSWORD      "yann"
+#define DEFAULT_PASSWORD      ""
+//#define DEFAULT_PASSWORD      "yann"
 
 #define DEFAULT_SSID   ""
 #define DEFAULT_PWD    ""

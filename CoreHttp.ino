@@ -17,11 +17,17 @@ int currentMenu = 0;
 
 void CoreHttp::add(String url, void (*func)(void))
 {
+#ifdef LOG_LEVEL_PANIC
+  Serial.println(__PRETTY_FUNCTION__);
+#endif
   WebServer.on( url.begin(), func );
 }
 
 void CoreHttp::setup()
 {
+#ifdef LOG_LEVEL_PANIC
+  Serial.println(__PRETTY_FUNCTION__);
+#endif
 #ifdef LOG_LEVEL_DEBUG
   String log = F("HTTP : Initialization.");
   CoreLog::add(LOG_LEVEL_DEBUG, log);
@@ -30,7 +36,7 @@ void CoreHttp::setup()
   // Initialize "constants" for later use
   texthtml = F("text/html");
   ignoreValue = F("*** ignore ***");
-
+  
   // Prepare webserver pages handling
   CoreHttp::add( "/",        CoreHttp::handleRoot    );
   CoreHttp::add( "/log",     CoreHttp::handleLog     );
@@ -80,6 +86,9 @@ void CoreHttp::loop()
 
 void CoreHttp::loopMedium()
 {
+#ifdef LOG_LEVEL_PANIC
+  Serial.println(__PRETTY_FUNCTION__);
+#endif
   if (loginTimeout)
   {
     String log;
@@ -100,6 +109,9 @@ void CoreHttp::loopMedium()
 
 void CoreHttp::pageHeader(String& html, int activeMenu)
 {
+#ifdef LOG_LEVEL_PANIC
+  Serial.println(__PRETTY_FUNCTION__);
+#endif
   html += F( "<!DOCTYPE html>"      );
   html += F( "<html>"      );
   html += F(   "<head><title>" );
@@ -148,6 +160,9 @@ void CoreHttp::pageHeader(String& html, int activeMenu)
 
 void CoreHttp::menuItem(String &html, String url, String libelle, int activeMenu)
 {
+#ifdef LOG_LEVEL_PANIC
+  Serial.println(__PRETTY_FUNCTION__);
+#endif
   html += F("<li><a href='");
   html += url;
   html += '\'';
@@ -160,11 +175,17 @@ void CoreHttp::menuItem(String &html, String url, String libelle, int activeMenu
 
 void CoreHttp::pageFooter(String& html)
 {
+#ifdef LOG_LEVEL_PANIC
+  Serial.println(__PRETTY_FUNCTION__);
+#endif
   html += F("</form></body></html>");
 }
 
 void CoreHttp::tableHeader(String &html, String section)
 {
+#ifdef LOG_LEVEL_PANIC
+  Serial.println(__PRETTY_FUNCTION__);
+#endif
   html += F("<tr><th colspan=2>");
   html += section;
   html += F("</th></tr>");
@@ -172,11 +193,14 @@ void CoreHttp::tableHeader(String &html, String section)
 
 void CoreHttp::tableLine(String &html, String title, String value)
 {
+#ifdef LOG_LEVEL_PANIC
+  Serial.println(__PRETTY_FUNCTION__);
+#endif
   html += F("<tr");
   if ((lineNo++) % 2) html += F(" class='odd'");
   html += F("><td");
 
-  if (title)
+  if (title != "")
   {
     html += '>';
     html += title;
@@ -192,19 +216,20 @@ void CoreHttp::tableLine(String &html, String title, String value)
 
 void CoreHttp::select(String &html, String name, String js)
 {
-  CoreHttp::select(html, name.begin(), js.begin());
-}
-
-void CoreHttp::select(String &html, char* name, char* js)
-{
-  if (name)
+#ifdef LOG_LEVEL_PANIC
+  Serial.println(__PRETTY_FUNCTION__);
+#endif
+  if (name!="")
   {
     html += F("<select id='");
     html += name;
     html += F("' name='");
     html += name;
-    html += F("' onChange='");
-    html += js;
+    if (js != "")
+    {
+      html += F("' onChange='");
+      html += js;
+    }
     html += F("'>");
   }
   else
@@ -214,10 +239,14 @@ void CoreHttp::select(String &html, char* name, char* js)
 
 void CoreHttp::option(String &html, String name, int value, bool selected)
 {
+#ifdef LOG_LEVEL_PANIC
+  Serial.println(__PRETTY_FUNCTION__);
+#endif
   html += F("<option value='");
   html += value;
   html += '\'';
   if (selected) html += F(" selected");
+
   html += '>';
   html += name;
   html += F("</option>");
@@ -225,6 +254,9 @@ void CoreHttp::option(String &html, String name, int value, bool selected)
 
 void CoreHttp::input(String &html, String field, String value, bool hide)
 {
+#ifdef LOG_LEVEL_PANIC
+  Serial.println(__PRETTY_FUNCTION__);
+#endif
   String type = F("text");
 
   if  (hide)
@@ -232,22 +264,28 @@ void CoreHttp::input(String &html, String field, String value, bool hide)
     type = F("password");
     value = ignoreValue;
   }
-
   html += F("<input type='");
   html += type;
   html += F("' name='");
   html += field;
   html += F("' value='");
-
   html += value;
   html += F("'>");
 }
 
 void CoreHttp::button(String &html, String value, String url)
 {
-  html += F("<button onClick=\"document.location='");
-  html += url;
-  html += F("'\">");
+#ifdef LOG_LEVEL_PANIC
+  Serial.println(__PRETTY_FUNCTION__);
+#endif
+  html += F("<button");
+  if (url != "")
+  {
+    html += F(" onClick=\"document.location='");
+    html += url;
+    html += F("'; return false;\"");
+  }
+  html += '>';
   html += value;
   html += F("</button>");
 }
@@ -258,6 +296,9 @@ void CoreHttp::button(String &html, String value, String url)
 //********************************************************************************
 bool CoreHttp::isLoggedIn(void)
 {
+#ifdef LOG_LEVEL_PANIC
+  Serial.println(__PRETTY_FUNCTION__);
+#endif
   // if no password set, we're loggeg in, that's bad so we print an error...
   if (CoreSettings::getChar("system.pass")[0] == '\0')
   {
@@ -310,6 +351,9 @@ bool CoreHttp::isLoggedIn(void)
 
 void CoreHttp::handleRoot(void)
 {
+#ifdef LOG_LEVEL_PANIC
+  Serial.println(__PRETTY_FUNCTION__);
+#endif
 #ifdef LOG_LEVEL_DEBUG
   String log = F("HTTP : GET /");
   CoreLog::add(LOG_LEVEL_DEBUG, log);
@@ -442,6 +486,9 @@ void CoreHttp::handleRoot(void)
 
 void CoreHttp::handleConfigSave(String &res)
 {
+#ifdef LOG_LEVEL_PANIC
+  Serial.println(__PRETTY_FUNCTION__);
+#endif
   String line;
 
   Serial.println("Saving configuration");
@@ -471,6 +518,9 @@ void CoreHttp::handleConfigSave(String &res)
 
 void CoreHttp::handleConfig(void)
 {
+#ifdef LOG_LEVEL_PANIC
+  Serial.println(__PRETTY_FUNCTION__);
+#endif
 #ifdef LOG_LEVEL_DEBUG
   String log = F("HTTP : GET /config");
   CoreLog::add(LOG_LEVEL_DEBUG, log);
@@ -545,6 +595,9 @@ void CoreHttp::handleConfig(void)
 
 void CoreHttp::handleToolsCommands(String &res, String &line)
 {
+#ifdef LOG_LEVEL_PANIC
+  Serial.println(__PRETTY_FUNCTION__);
+#endif
   String log;
 
   for (int argNo = 1; argNo <= commandArgs; argNo++)
@@ -566,6 +619,9 @@ void CoreHttp::handleToolsCommands(String &res, String &line)
 
 void CoreHttp::handleTools(void)
 {
+#ifdef LOG_LEVEL_PANIC
+  Serial.println(__PRETTY_FUNCTION__);
+#endif
 #ifdef LOG_LEVEL_DEBUG
   String log = F("HTTP : GET /tools");
   CoreLog::add(LOG_LEVEL_DEBUG, log);
@@ -635,6 +691,9 @@ void CoreHttp::handleTools(void)
 
 void CoreHttp::handleLog(void)
 {
+#ifdef LOG_LEVEL_PANIC
+  Serial.println(__PRETTY_FUNCTION__);
+#endif
   if (!CoreHttp::isLoggedIn())
     return;
 

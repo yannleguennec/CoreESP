@@ -1,64 +1,77 @@
 #include "PluginLed.h"
 
-PluginLed::PluginLed(bool first) : 
-  CorePlugins( "Led", "handle led", first )
-{
-  Serial.println("This is PluginSwitch");
-}
-
 void PluginLed::setup(void)
 {
+#ifdef LOG_LEVEL_PANIC
+  Serial.println(__PRETTY_FUNCTION__);
+#endif
   String log = F("PluginLed Initialization.");
   CoreLog::add(LOG_LEVEL_INFO, log);
 }
 
 CorePlugins* PluginLed::factory(void) 
 {
+#ifdef LOG_LEVEL_PANIC
+  Serial.println(__PRETTY_FUNCTION__);
+#endif
   CorePlugins* plugin = new PluginLed();
-  plugin->num(_num);
+  Serial.print( " setting pluginNumber=");
+  Serial.print( _pluginNumber );
+  plugin->pluginNumber(_pluginNumber);
   return plugin;
 }
 
 void PluginLed::webForm( String &html )
 {
+#ifdef LOG_LEVEL_PANIC
+  Serial.println(__PRETTY_FUNCTION__);
+#endif
   String line;
   
   CorePlugins::webForm(html);
   
-  String optionsType[] = { "OnOff", "PWM" };
-  String optionsPin[] = { "1", "3", "5", "7"};
-  int optionNo;
-
   // Select switch type
-  line = "";
+  line="";
   CoreHttp::select(line, "type");
-  for( int optionNo=0; optionNo< sizeof(optionsType) / sizeof(String); optionNo++ )
-    CoreHttp::option(line, optionsType[ optionNo ], optionNo);
+  CoreHttp::option(line, "OnOff", 0);
+  CoreHttp::option(line, "PWM", 1);
   CoreHttp::select(line);
   CoreHttp::tableLine(html, "Type", line);
 
   // Select switch pin
-  CoreHttp::select(line, "pin");
-  line = "";
-  optionNo=0;
-  while ( optionsPin[ optionNo ] != "" )
-    CoreHttp::option(line, optionsPin[ optionNo ], optionNo);
+  line="";
+  CoreHttp::select(line, "pin");  
+  CoreHttp::option(line, "1", 1);
+  CoreHttp::option(line, "3", 3);
+  CoreHttp::option(line, "5", 5);
+  CoreHttp::option(line, "7", 7);
   CoreHttp::select(line);
   CoreHttp::tableLine(html, "Pin", line);
 
   line="";
-  CoreHttp::select(line, "state");
+  CoreHttp::select(line, "inverse");
+  CoreHttp::option(line, "No", 0);
+  CoreHttp::option(line, "Yes", 1);
+  CoreHttp::select(line);
+  CoreHttp::tableLine(html, "Inverse", line);
+  
+  line="";
+  CoreHttp::select(line, "bootstate");
   CoreHttp::option(line, "Off", 0);
   CoreHttp::option(line, "On", 1);
   CoreHttp::select(line);
   CoreHttp::tableLine(html, "Boot state", line);
 }
 
-void PluginLed::webFormSubmit( void )
+void PluginLed::webSubmit( void )
 {
-  CorePlugins::webFormSubmit();
+#ifdef LOG_LEVEL_PANIC
+  Serial.println(__PRETTY_FUNCTION__);
+#endif
+  __super::webSubmit();
   _type = atoi( WebServer.arg("type").begin() );
-  _pin = atoi( WebServer.arg("type").begin() );
+  _pin = atoi( WebServer.arg("pin").begin() );
+  _inverse = atoi( WebServer.arg("inverse").begin() );
   _bootState = atoi( WebServer.arg("type").begin() );
 }
 
@@ -86,6 +99,9 @@ void PluginLed::loopFast(void)
 
 void PluginLed::loopMedium(void)
 {
+#ifdef LOG_LEVEL_PANIC
+  Serial.println(__PRETTY_FUNCTION__);
+#endif
   String log = F("PluginLed top");
   CoreLog::add(LOG_LEVEL_INFO, log);
   log = "@";
@@ -93,5 +109,5 @@ void PluginLed::loopMedium(void)
   CoreLog::add(LOG_LEVEL_INFO, log);
 }
 
-PluginLed pluginLed(true);
+PluginLed pluginLed("Led", "Handle led");
 

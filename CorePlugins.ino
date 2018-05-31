@@ -4,55 +4,81 @@ CorePlugins *plugin[ pluginMax ];
 int pluginNb = 0;
 int pluginNo = 0;
 
-CorePlugins::CorePlugins(bool first)
+CorePlugins::CorePlugins(String pluginName, String pluginDesc)
 {
-  if (first)
-  {
-    // Store the plugin for later use
-    this->num( pluginNb + 1 );
-    if (pluginNb < pluginMax)
-      plugin[ pluginNb++ ] = this;
-  }
+    Serial.begin(74880);
+  //#ifdef LOG_LEVEL_PANIC
+    Serial.println(__PRETTY_FUNCTION__);
+  //#endif
+  this->_pluginName = pluginName;
+  this->_pluginDesc = pluginDesc;
+  this->registerPlugin();
 };
 
-CorePlugins::CorePlugins(const char *name, const char *desc, bool first) :
-  CorePlugins(first)
+void CorePlugins::registerPlugin(void)
 {
-  this->_name = name;
-  this->_desc = desc;
+//#ifdef LOG_LEVEL_PANIC
+  Serial.println(__PRETTY_FUNCTION__);
+//#endif
+  // Store the plugin for later use
+  this->pluginNumber( pluginNb + 1 );
+  if (pluginNb < pluginMax)
+    plugin[ pluginNb++ ] = this;
+  else
+  {
+    String log = F("PLGS : Too much plugins (increase pluginMax)");
+    CoreLog::add(LOG_LEVEL_ERROR, log);
+  }
 };
 
 void CorePlugins::loopFast(void)
 {
-  String log =  "Plugin::loopFast(void)";
-  CoreLog::add(LOG_LEVEL_INFO, log);
+#ifdef LOG_LEVEL_PANIC
+//  Serial.println(__PRETTY_FUNCTION__);
+#endif
 }
 
 void CorePlugins::loopMedium(void)
 {
-  String log =  "Plugin::loopMedium(void)";
-  CoreLog::add(LOG_LEVEL_INFO, log);
+#ifdef LOG_LEVEL_PANIC
+//  Serial.println(__PRETTY_FUNCTION__);
+#endif
 }
 
 void CorePlugins::loopSlow(void)
 {
-  String log =  "Plugin::loopSlow(void)";
-  CoreLog::add(LOG_LEVEL_INFO, log);
+#ifdef LOG_LEVEL_PANIC
+  Serial.println(__PRETTY_FUNCTION__);
+#endif
 }
 
 void CorePlugins::setup(void)
 {
-   String log =  "CorePlugins::setup(void)";
+#ifdef LOG_LEVEL_PANIC
+  Serial.println(__PRETTY_FUNCTION__);
+#endif
+#ifdef LOG_LEVEL_DEBUG
+   String log =  "PLGS: Initialization";
    CoreLog::add(LOG_LEVEL_DEBUG, log);
+#endif
 
    CoreHttp::add( "/plugins", CorePlugins::listWeb );
    CoreCommands::add("plugins", CorePlugins::listCommand, "List plugins");
 }
 
-CorePlugins* CorePlugins::factory() { return NULL; };
+CorePlugins* CorePlugins::factory() 
+{
+#ifdef LOG_LEVEL_PANIC
+  Serial.println(__PRETTY_FUNCTION__);
+#endif
+  return NULL; 
+};
 
 void CorePlugins::listCommand(String &res, char **)
 {
+#ifdef LOG_LEVEL_PANIC
+  Serial.println(__PRETTY_FUNCTION__);
+#endif
   String log;
   log += pluginNb;
   log += F(" plugins : ");
@@ -77,6 +103,9 @@ void CorePlugins::listCommand(String &res, char **)
 
 void CorePlugins::listWeb(void)
 {
+#ifdef LOG_LEVEL_PANIC
+  Serial.println(__PRETTY_FUNCTION__);
+#endif
 #ifdef LOG_LEVEL_DEBUG
   String log = F("HTTP : GET /plugins");
   CoreLog::add(LOG_LEVEL_DEBUG, log);
@@ -98,7 +127,7 @@ void CorePlugins::listWeb(void)
   CorePlugins *plugin = CorePlugins::first();
   while (plugin)
   {
-    CoreHttp::tableLine(reply, plugin->name(), plugin->desc());
+    CoreHttp::tableLine(reply, plugin->pluginName(), plugin->pluginDesc());
     plugin = CorePlugins::next();
   }
 
@@ -108,36 +137,57 @@ void CorePlugins::listWeb(void)
   WebServer.send(200, texthtml, reply);
 }
 
+void CorePlugins::webMenu(String& html, int activeMenu)
+{
+#ifdef LOG_LEVEL_PANIC
+  Serial.println(__PRETTY_FUNCTION__);
+#endif
+  // Non utilisé pour le moment.
+  CoreHttp::menuItem( html, "plugins",  "Plugins",     activeMenu);
+}
+
 void CorePlugins::webForm(String& html)
 {
+#ifdef LOG_LEVEL_PANIC
+  Serial.println(__PRETTY_FUNCTION__);
+#endif
   String line, form;
-  line = F("Topic");
+  line = F("Name");
   form = F("<input type='text' name='topic' value=\"");
-  form += _topic;
+  form += _deviceTopic;
   form += F("\">");
   CoreHttp::tableLine(html, line, form);
   
   line = F("Comment");
   form = F("<input type='text' name='comment' value=\"");
-  form += _comment;
+  form += _deviceComment;
   form += F("\">");
   CoreHttp::tableLine(html, line, form);
 }
 
-void CorePlugins::webFormSubmit( void )
+void CorePlugins::webSubmit( void )
 {
-  _topic = WebServer.arg(F("topic"));
-  _comment = WebServer.arg(F("comment"));
+#ifdef LOG_LEVEL_PANIC
+  Serial.println(__PRETTY_FUNCTION__);
+#endif
+  _deviceTopic = WebServer.arg(F("topic"));
+  _deviceComment = WebServer.arg(F("comment"));
 }
 
 CorePlugins* CorePlugins::first(void)
 {
+#ifdef LOG_LEVEL_PANIC
+  Serial.println(__PRETTY_FUNCTION__);
+#endif
   pluginNo = 0;
   return plugin[ pluginNo ];
 }
 
 CorePlugins* CorePlugins::next(void)
 {
+#ifdef LOG_LEVEL_PANIC
+  Serial.println(__PRETTY_FUNCTION__);
+#endif
   if ( ++pluginNo >= pluginNb)
     return NULL;
   return plugin[ pluginNo ];

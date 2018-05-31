@@ -10,6 +10,9 @@ void CoreSystem::setup(void)
   Serial.begin( 74880 );
   Serial.println();
   Serial.println("Booting...");
+#ifdef LOG_LEVEL_PANIC
+  Serial.println(__PRETTY_FUNCTION__);
+#endif
 }
 
 void CoreSystem::loop(void)
@@ -21,6 +24,9 @@ void CoreSystem::loop(void)
 
 void CoreSystem::loopSlow(void)
 {
+#ifdef LOG_LEVEL_PANIC
+  Serial.println(__PRETTY_FUNCTION__);
+#endif
   { // Handle load everage
     loopCounterLast = loopCounter;
     if (loopCounterLast > loopCounterMax)
