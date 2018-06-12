@@ -14,7 +14,7 @@ CorePlugins* PluginDHT::factory(void)
 #ifdef LOG_LEVEL_PANIC
   Serial.println(__PRETTY_FUNCTION__);
 #endif
-  CorePlugins* plugin = new PluginDHT();
+  CorePlugins* plugin = new PluginDHT(*this);
   Serial.print( " setting pluginNumber=");
   Serial.print( _pluginNumber );
   plugin->pluginNumber(_pluginNumber);

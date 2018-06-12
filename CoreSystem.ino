@@ -7,7 +7,7 @@ unsigned long loopCounterMax  = 1;
 
 void CoreSystem::setup(void)
 {
-  Serial.begin( 74880 );
+  Serial.begin( 115200 );
   Serial.println();
   Serial.println("Booting...");
 #ifdef LOG_LEVEL_PANIC

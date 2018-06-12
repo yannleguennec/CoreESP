@@ -2,9 +2,10 @@
 
 #define deviceMax 10
 CorePlugins *device[deviceMax];
-int deviceNo = 0;
+//int deviceNo = 0;
 
-#define forEachDevice(func) for(int deviceNo=0; deviceNo < deviceMax; deviceNo++) { if (device[ deviceNo ]) device[ deviceNo ]->func(); }
+#define forEachDevice(func) for(int deviceNo=0; deviceNo < deviceMax; deviceNo++) \
+          { if (device[ deviceNo ]) device[ deviceNo ]->func(); }
 
 void CoreDevices::setup(void)
 {
@@ -31,7 +32,7 @@ void CoreDevices::loopSlow(void)
 void CoreDevices::loopMedium(void)
 {
 #ifdef LOG_LEVEL_PANIC
- // Serial.println(__PRETTY_FUNCTION__);
+  // Serial.println(__PRETTY_FUNCTION__);
 #endif
   forEachDevice(loopMedium);
 };
@@ -39,7 +40,7 @@ void CoreDevices::loopMedium(void)
 void CoreDevices::loopFast(void)
 {
 #ifdef LOG_LEVEL_PANIC
- // Serial.println(__PRETTY_FUNCTION__);
+  // Serial.println(__PRETTY_FUNCTION__);
 #endif
   forEachDevice(loopFast);
 };
@@ -70,6 +71,7 @@ void CoreDevices::listCommand(String& res, char** block)
 
     CoreLog::add(LOG_LEVEL_INFO, log);
     res += log;
+    res += '\n';
   }
 }
 
@@ -97,7 +99,7 @@ void CoreDevices::listWeb(void)
   if (!CoreHttp::isLoggedIn())
     return;
 
-  String html, line, res;
+  String html, line, res, form;
 
   CoreHttp::pageHeader(html, MENU_DEVICES);
   html += res;
@@ -107,29 +109,55 @@ void CoreDevices::listWeb(void)
   line = F("Devices list");
   CoreHttp::tableHeader(html, line);
 
-  for (deviceNo = 0; deviceNo < deviceMax; deviceNo++)
+  for (int deviceNo = 0; deviceNo < deviceMax; deviceNo++)
   {
     line = deviceNo;
     line += F(" : ");
 
+    //    if ( device[ deviceNo ] && !device[ deviceNo ]->saved() )
+    //    {
+    //      // If device is set but not saved, just delete it,
+    //      delete device[ deviceNo ];
+    //      device[ deviceNo ] = NULL;
+    //    }
+
+    //    String js;
+    //    js += "redirect('/device?deviceNo=";
+    //    js += deviceNo;
+    //    js += "&pluginNo=' + this.options[ this.selectedIndex ].value); ";
+
+    // How can I choose between onClick and onChange ?
+    // onClick in /devices
+    // onChange in ./device
+
+    String name = F("None");
+    String url = F("redirect('/device?deviceNo=");
+    url += deviceNo;
     if (device[ deviceNo ])
     {
-      line += device[ deviceNo ]->deviceTopic();
-
-      String name = F("device_");
-      name += deviceNo;
-
-      line += device[ deviceNo ]->toString();
+      name = device[ deviceNo ]->pluginName();
+      url += "&pluginNo=";
+      url += device[ deviceNo ]->pluginNumber();
     }
-    else
-      line += F("None");
-
-    line += ' ';
-    
-    String url = F("/device?id=");
-    url += deviceNo;
-    CoreHttp::button(line, "Modify", url);
-
+    url += "');";
+    CoreHttp::button(line, name, url);
+    //    CoreHttp::select(line, F("pluginId"), js);
+    //    CoreHttp::option(line, "None", 0);
+    //    CorePlugins *plugin = CorePlugins::first();
+    //    while (plugin)
+    //    {
+    //      String name = plugin->toString();
+    //      bool selected = false;
+    //
+    //      // Manque le option active !!!
+    //      if (device[ deviceNo ])
+    //        selected = ( device[ deviceNo ]->pluginNumber() == plugin->pluginNumber() );
+    //
+    //      CoreHttp::option(line, name, plugin->pluginNumber(), selected);
+    //
+    //      plugin = CorePlugins::next();
+    //    }
+    //    CoreHttp::select(line);
     CoreHttp::tableLine(html, "", line);
   }
 
@@ -140,41 +168,43 @@ void CoreDevices::listWeb(void)
 }
 
 // Check range excluding max
-#define checkRangeEx( val, min, max ) { if ( (val) < (min) ) (val) = (min); if ( (val) >= (max) ) (val) = (max); }
+#define checkRangeEx( val, min, max ) \
+          { if ( (val) < (min) ) (val) = (min); if ( (val) >= (max) ) (val) = (max); }
 // Check range including max
-#define checkRangeIn( val, min, max ) { if ( (val) < (min) ) (val) = (min); if ( (val) >  (max) ) (val) = (max); }
+#define checkRangeIn( val, min, max ) \
+          { if ( (val) < (min) ) (val) = (min); if ( (val) >  (max) ) (val) = (max); }
 
-void CoreDevices::setupPlugin(int &deviceId, int pluginId)
+void CoreDevices::setupPlugin(int &deviceNo, int pluginNo)
 {
 #ifdef LOG_LEVEL_PANIC
   Serial.println(__PRETTY_FUNCTION__);
 #endif
   Serial.println(__PRETTY_FUNCTION__);
-  checkRangeEx( deviceId, 0, deviceMax );
-  checkRangeIn( pluginId, 0, pluginNb);
-  Serial.print("deviceId=");
-  Serial.print( deviceId );
-  Serial.print(", new pluginId=");
-  Serial.print( pluginId );
-  if (pluginId)
+  checkRangeEx( deviceNo, 0, deviceMax );
+  checkRangeIn( pluginNo, 0, pluginNb);
+  Serial.print("deviceNo=");
+  Serial.print( deviceNo );
+  Serial.print(", new pluginNo=");
+  Serial.print( pluginNo );
+  if (pluginNo)
   {
-    pluginId--;
-    if (!device[ deviceId ])
+    pluginNo--;
+    if (!device[ deviceNo ])
     {
       // Create plugin
-      device[ deviceId ] = plugin[ pluginId ]->factory();
+      device[ deviceNo ] = plugin[ pluginNo ]->factory();
       Serial.print(" Creation ");
     }
     else
     {
       // Check plugin
-      Serial.print(", old pluginId=");
-      Serial.print( device[ deviceId ]->pluginNumber() );
-      if (device[ deviceId ]->pluginNumber() != pluginId+1)
+      Serial.print(", old pluginNo=");
+      Serial.print( device[ deviceNo ]->pluginNumber() );
+      if (device[ deviceNo ]->pluginNumber() != pluginNo + 1)
       {
         // Change plugin
-        delete device[ deviceId ];
-        device[ deviceId ] = plugin[ pluginId ]->factory();
+        delete device[ deviceNo ];
+        device[ deviceNo ] = plugin[ pluginNo ]->factory();
         Serial.print(" Modification ");
       }
       else Serial.print(" Rien à faire ");
@@ -184,14 +214,14 @@ void CoreDevices::setupPlugin(int &deviceId, int pluginId)
   else
   {
     // Remove plugin
-    if (device[ deviceId ])
-      delete device[ deviceId ];
-    device[ deviceId ] = NULL;
+    if (device[ deviceNo ])
+      delete device[ deviceNo ];
+    device[ deviceNo ] = NULL;
     Serial.print(" Suppression ");
   }
 
   Serial.print(", device=");
-  Serial.println( (int) device[ deviceId ] );
+  Serial.println( (int) device[ deviceNo ] );
 }
 
 void CoreDevices::setWeb(void)
@@ -199,23 +229,38 @@ void CoreDevices::setWeb(void)
 #ifdef LOG_LEVEL_PANIC
   Serial.println(__PRETTY_FUNCTION__);
 #endif
-  int deviceId = atoi( WebServer.arg("id").begin() );
+  int deviceNo = atoi( WebServer.arg("deviceNo").begin() ); // should check for range here !!!
+  int pluginNo = atoi( WebServer.arg("pluginNo").begin() ); // should check for range here !!!
 
 #ifdef LOG_LEVEL_DEBUG
-  String log = F("HTTP : GET /device?id=");
-  log += deviceId;
+  String log = F("HTTP : GET /device?deviceNo=");
+  log += deviceNo;
+  log += F("&pluginNo=");
+  log += pluginNo;
   CoreLog::add(LOG_LEVEL_DEBUG, log);
 #endif
 
   if (!CoreHttp::isLoggedIn())
     return;
 
-  int pluginId = atoi( WebServer.arg("pluginId").begin() );
-  setupPlugin(deviceId, pluginId);
-  
-  if (device[ deviceId ])
-    // Update plugin
-    device[ deviceId ]->webSubmit();
+  // Ici, il faudrait :
+  // - si save=true,
+  //   -- Creer le device
+  //   -- Recupérer les valeurs du formulaire
+  //   -- Afficher le formulaire en fct du device
+  // - Sinon
+  //   -- Afficher le formulaire en fct du plugin (Valeurs par défaut)
+
+
+  if ( WebServer.arg("save") == "yes" )
+  {
+    Serial.println("Saving device...");
+    setupPlugin(deviceNo, pluginNo);
+
+    if (device[ deviceNo ])
+      // Update device with form infos.
+      device[ deviceNo ]->webSubmit();
+  }
 
   // Display device
   String html, line, res, form;
@@ -226,44 +271,32 @@ void CoreDevices::setWeb(void)
   html += F("<table class='table'>");
 
   line = F("Device ");
-  line += deviceId;
-  line += F(", Plugin ");
-  line += pluginId;
-  line += " (0x";
-  line += (int) device[ deviceId ];
-  line += ")";
+  line += deviceNo;
   CoreHttp::tableHeader(html, line);
 
-  line = F("Plugin");
+  String js;
+  js = "redirect('/device?deviceNo=";
+  js += deviceNo;
+  js += "&pluginNo=' + this.options[ this.selectedIndex ].value); ";
+
   form = "";
-  String js = 
-      //" alert(this.options[ this.selectedIndex ].value); ";
-      "form.submit();";
-  CoreHttp::select(form, F("pluginId"), js);
+  CoreHttp::select(form, F("pluginNo"), js);
   CoreHttp::option(form, "None", 0);
-  CorePlugins *plugin = CorePlugins::first();
-  while (plugin)
-  {
-    String name = plugin->toString();
-    bool selected = false;
-    
-    // Manque le option active !!!
-    if (device[ deviceId ])
-      selected = device[ deviceId ]->pluginNumber() == plugin->pluginNumber();
-
-    CoreHttp::option(form, name, plugin->pluginNumber(), selected);
-
-    plugin = CorePlugins::next();
-  }  
+  CorePlugins *plg = CorePlugins::first();
+  while (plg)
+  { 
+    CoreHttp::option(form, plg->toString(), plg->pluginNumber(), ( plg->pluginNumber() == pluginNo ));
+    plg = CorePlugins::next();
+  }
   CoreHttp::select(form);
-  CoreHttp::tableLine(html, line, form);
-  
-  if (device[ deviceId ])
-    device[ deviceId ]->webForm( html );
+  CoreHttp::tableLine(html, F("Plugin : "), form);
+
+  if (pluginNo)
+    plugin[ pluginNo - 1 ]->webForm( html );
 
   form = "";
-  CoreHttp::button( form, "Save", "save()");
-  CoreHttp::button( form, "Cancel", "cancel()");
+  CoreHttp::button( form, save,   "document.submit()");
+  CoreHttp::button( form, cancel, "redirect('/devices')");
   CoreHttp::tableLine(html, "", form);
 
   html += F("</table>");

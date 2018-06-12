@@ -58,7 +58,7 @@ void CorePlugins::setup(void)
   Serial.println(__PRETTY_FUNCTION__);
 #endif
 #ifdef LOG_LEVEL_DEBUG
-   String log =  "PLGS: Initialization";
+   String log =  "PLGS : Initialization";
    CoreLog::add(LOG_LEVEL_DEBUG, log);
 #endif
 
@@ -152,17 +152,15 @@ void CorePlugins::webForm(String& html)
   Serial.println(__PRETTY_FUNCTION__);
 #endif
   String line, form;
-  line = F("Name");
-  form = F("<input type='text' name='topic' value=\"");
-  form += _deviceTopic;
-  form += F("\">");
-  CoreHttp::tableLine(html, line, form);
-  
-  line = F("Comment");
-  form = F("<input type='text' name='comment' value=\"");
-  form += _deviceComment;
-  form += F("\">");
-  CoreHttp::tableLine(html, line, form);
+
+  form = "";
+  CoreHttp::input( form, F("save"), F("yes"), F("hidden"));
+  CoreHttp::input( form, F("topic"), _deviceTopic );
+  CoreHttp::tableLine(html, F("Name"), form);
+
+  form = "";
+  CoreHttp::input( form, F("comment"), _deviceComment );
+  CoreHttp::tableLine(html, F("Comment"), form);
 }
 
 void CorePlugins::webSubmit( void )
@@ -170,6 +168,7 @@ void CorePlugins::webSubmit( void )
 #ifdef LOG_LEVEL_PANIC
   Serial.println(__PRETTY_FUNCTION__);
 #endif
+  _saved = WebServer.arg(F("save"));
   _deviceTopic = WebServer.arg(F("topic"));
   _deviceComment = WebServer.arg(F("comment"));
 }

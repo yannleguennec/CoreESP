@@ -12,7 +12,7 @@
 // Definition des plugins :
 #include "PluginSwitch.h"
 
-// Multitasking : Schedule the launch of the func every interval (ms)
+// Multitasking : Schedule the launch of func every interval (ms)
 #define schedule(func, interval) { static unsigned long func##last=0; if (millis()-(func##last)>=(interval)) { (func##last)=millis(); (func)(); } }
 
 // loops delays in ms

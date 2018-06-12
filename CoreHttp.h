@@ -14,7 +14,7 @@
 
 #include <ESP8266WebServer.h>
 extern ESP8266WebServer WebServer;
-extern const __FlashStringHelper* texthtml;
+extern String texthtml, save, cancel;
 
 class CoreHttp
 {
@@ -34,7 +34,7 @@ public:
   static void tableLine(String &hrml, String title, String value);
   static void select(String &html, String name="", String js="");
   static void option(String &html, String name, int value, bool selected=false);
-  static void input(String &html, String name, String value, bool hide=false);
+  static void input(String &html, String name, String value, String type="text");
   static void button(String &html, String value, String url="");
 
   static bool isLoggedIn();

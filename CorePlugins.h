@@ -4,6 +4,8 @@
 class CorePlugins
 {
 protected:
+  bool _saved;
+  
   // Infos du plugin
   int    _pluginNumber;
   String _pluginName;
@@ -14,7 +16,7 @@ protected:
   String _deviceComment;
   
 public:
-  CorePlugins(void) {};
+  CorePlugins(void) { _saved = false; };
   CorePlugins(String pluginName, String pluginDesc);
   void registerPlugin();
 
@@ -44,6 +46,9 @@ public:
   
   void deviceComment( String& deviceComment ) { _deviceComment = deviceComment; };
   String& deviceComment( void ) { return _deviceComment; };
+
+  bool saved(void) { return _saved; };
+  void save(void) { _saved = true; };
 
   static void setup(void);
   

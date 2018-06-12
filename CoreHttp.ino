@@ -9,8 +9,11 @@ ESP8266WebServer WebServer(80);
 boolean WebLoggedIn = false;
 int WebLoggedInTimer = 300;
 //String webStatusMessage = "";
-const __FlashStringHelper* texthtml;
-const __FlashStringHelper* ignoreValue;
+
+// Common strings
+String texthtml, ignoreValue, save, cancel;
+
+
 byte loginTimeout = 0; // Not logged in at start
 int lineNo = 0;
 int currentMenu = 0;
@@ -33,10 +36,12 @@ void CoreHttp::setup()
   CoreLog::add(LOG_LEVEL_DEBUG, log);
 #endif
 
-  // Initialize "constants" for later use
+  // Initialize common strings
   texthtml = F("text/html");
   ignoreValue = F("*** ignore ***");
-  
+  save = F("<span class='tick'> Save</span>");
+  cancel = F("<span class='cross'> Cancel</span>");
+
   // Prepare webserver pages handling
   CoreHttp::add( "/",        CoreHttp::handleRoot    );
   CoreHttp::add( "/log",     CoreHttp::handleLog     );
@@ -117,6 +122,7 @@ void CoreHttp::pageHeader(String& html, int activeMenu)
   html += F(   "<head><title>" );
   html += CoreSettings::getChar( "system.name" );
   html += F(     "</title>"      );
+  html += F(     "<meta charset='utf-8' />" );
   html += F(     "<style>"     );
   html += F(       "html body{font-family:Sans-Serif;font-size:12px;padding:0;margin:0;} "     );
   html += F(       ".table{width:94%;text-align:center;background:#eec;border-collapse:collapse;border-top:7px solid #9af;border-bottom:7px solid #9af;border-right:1px solid #dde;border-left:1px solid #dde;margin:5px;} "     );
@@ -134,14 +140,20 @@ void CoreHttp::pageHeader(String& html, int activeMenu)
   html += F(       ".menu li a{font-size: 13px;display: block;color: #999;padding:8px 16px;text-decoration:none;} "     );
   html += F(       ".menu li a.active{background:#e8e8e8;color:#666;font-weight:bold;} "     );
   html += F(       ".menu li a:hover{background:#dde;color:#666;} "     );
+  html += F(       ".tick:before{content:\"\\2713\";color: darkgreen;} " );
+  html += F(       ".cross:before{content:\"\\2717\";color: crimson;} ");
   html += F(     "</style>"    );
   html += F(   "</head>"     );
   html += F( "<body>"      );
 
-  html += F("<ul class='menu'>"     );
-  html += F(  "<li class='title'>"  );
+  html += F(   "<script>" );
+  html += F(     "function redirect(url) { document.location = url; return false; }" );
+  html += F(   "</script>" ); 
+
+  html += F(    "<ul class='menu'>"     );
+  html += F(      "<li class='title'>"  );
   html += CoreSettings::getChar( "system.name" );
-  html += F("</li>"     );
+  html += F(      "</li>"     );
 
   currentMenu = 0;
   menuItem( html, ".",        "Information", activeMenu);
@@ -152,9 +164,9 @@ void CoreHttp::pageHeader(String& html, int activeMenu)
   menuItem( html, "tools",    "Tools",       activeMenu);
   //menuItem( html, "advanced", "Advanced",    activeMenu);
 
-  html += F("</ul>"     );
+  html += F(     "</ul>"     );
 
-  html += F("<form class='page' method='post'>");
+  html += F(     "<form class='page' method='post'>");
   lineNo = 0;
 }
 
@@ -221,16 +233,17 @@ void CoreHttp::select(String &html, String name, String js)
 #endif
   if (name!="")
   {
-    html += F("<select id='");
+    html += F("<select id=\"");
     html += name;
-    html += F("' name='");
+    html += F("\" name=\"");
     html += name;
     if (js != "")
     {
-      html += F("' onChange='");
+//      onchange="changeFunc(value);" directly pass the value
+      html += F("\" onChange=\"");
       html += js;
     }
-    html += F("'>");
+    html += F("\">");
   }
   else
     html += F("</select>");
@@ -252,18 +265,11 @@ void CoreHttp::option(String &html, String name, int value, bool selected)
   html += F("</option>");
 };
 
-void CoreHttp::input(String &html, String field, String value, bool hide)
+void CoreHttp::input(String &html, String field, String value, String type)
 {
 #ifdef LOG_LEVEL_PANIC
   Serial.println(__PRETTY_FUNCTION__);
 #endif
-  String type = F("text");
-
-  if  (hide)
-  {
-    type = F("password");
-    value = ignoreValue;
-  }
   html += F("<input type='");
   html += type;
   html += F("' name='");
@@ -281,9 +287,9 @@ void CoreHttp::button(String &html, String value, String url)
   html += F("<button");
   if (url != "")
   {
-    html += F(" onClick=\"document.location='");
+    html += F(" onClick=\"");
     html += url;
-    html += F("'; return false;\"");
+    html += F("; return false;\"");
   }
   html += '>';
   html += value;
@@ -565,20 +571,27 @@ void CoreHttp::handleConfig(void)
     }
     else  section[0] = '\0';
 
-    line = "";
-
-    bool hide = false;
-    if (setting->name.endsWith(".pass")) hide = true;
-
+    String value = F("");
+    String type = F("text");
+    
     switch (setting->type)
     {
       case SET_TYPE_INT:
-        CoreHttp::input(line, setting->name, String(setting->value.i));
+        value = setting->value.i;
         break;
       case SET_TYPE_STRING:
-        CoreHttp::input(line, setting->name, setting->value.str->begin(), hide);
+        value = *setting->value.str;
         break;
     }
+
+    if (setting->name.endsWith(".pass")) 
+    {
+      type = F("password");
+      value = ignoreValue;
+    }
+    
+    line = "";
+    CoreHttp::input(line, setting->name, value, type);
     tableLine(html, setting->name, line);
 
     setting = CoreSettings::next();
