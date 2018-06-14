@@ -28,7 +28,8 @@ class CoreLog
 public:
   static void setup();
 
-  static void add( byte logLevel, String &msg );
+  static void add( byte logLevel, String &msg );  
+  static void addLog( byte logLevel, String &msg );
   static void display(String &line, Log *log );
 
   static Log *first(void);

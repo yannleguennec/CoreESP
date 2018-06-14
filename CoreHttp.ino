@@ -18,7 +18,7 @@ byte loginTimeout = 0; // Not logged in at start
 int lineNo = 0;
 int currentMenu = 0;
 
-void CoreHttp::add(String url, void (*func)(void))
+void CoreHttp::addUrl(String url, void (*func)(void))
 {
 #ifdef LOG_LEVEL_PANIC
   Serial.println(__PRETTY_FUNCTION__);
@@ -43,10 +43,10 @@ void CoreHttp::setup()
   cancel = F("<span class='cross'> Cancel</span>");
 
   // Prepare webserver pages handling
-  CoreHttp::add( "/",        CoreHttp::handleRoot    );
-  CoreHttp::add( "/log",     CoreHttp::handleLog     );
-  CoreHttp::add( "/config",  CoreHttp::handleConfig  );
-  CoreHttp::add( "/tools",   CoreHttp::handleTools   );
+  CoreHttp::addUrl( "/",        CoreHttp::handleRoot    );
+  CoreHttp::addUrl( "/log",     CoreHttp::handleLog     );
+  CoreHttp::addUrl( "/config",  CoreHttp::handleConfig  );
+  CoreHttp::addUrl( "/tools",   CoreHttp::handleTools   );
 
   /*  WebServer.on("/hardware", handle_hardware);
     WebServer.on("/devices", handle_devices);
@@ -512,14 +512,14 @@ void CoreHttp::handleConfigSave(String &res)
       line += '\'';
 
       //CoreLog::add(LOG_LEVEL_INFO, line);
-      CoreCommands::execute( res, line );
+      coreCommands.execute( res, line );
     }
 
     setting = CoreSettings::next();
   }
   line = "save";
   res = "";
-  CoreCommands::execute( res, line );
+  coreController.execute( res, line );
 }
 
 void CoreHttp::handleConfig(void)
@@ -627,7 +627,7 @@ void CoreHttp::handleToolsCommands(String &res, String &line)
   log += line;
   log += '\'';
   CoreLog::add(LOG_LEVEL_INFO, log);
-  CoreCommands::execute( res, line );
+  coreController.execute( res, line );
 }
 
 void CoreHttp::handleTools(void)
@@ -713,7 +713,7 @@ void CoreHttp::handleLog(void)
   String reply, res, line = WebServer.arg("cmd");
 
   if (line.length() != 0)
-    CoreCommands::execute(res, line);
+    coreController.execute(res, line);
 
   pageHeader(reply, MENU_ADVANCED);
   reply += res;

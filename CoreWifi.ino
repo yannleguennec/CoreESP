@@ -6,7 +6,7 @@ extern "C" {
 // https://github.com/dancol90/ESP8266Ping - GNU LESSER GENERAL PUBLIC LICENSE
 
 #include "CoreWifi.h"
-#include "CoreCommands.h"
+#include "CoreControllers.h"
 
 // Timeouts
 #define WIFI_RETRIES              3
@@ -45,13 +45,13 @@ void CoreWifi::setup()
   CoreLog::add(LOG_LEVEL_DEBUG, log);
 #endif
 
-  CoreCommands::add( "ping",   CoreWifi::pingCommand, "Pings hostname or IP" );
+  coreController.addCommand( "ping",   CoreWifi::pingCommand, "Pings hostname or IP" );
 
-  CoreCommands::add( "wifiConnect",    CoreWifi::connectCommand,    "Connects to wifi" );
-  CoreCommands::add( "wifiDisconnect", CoreWifi::disconnectCommand, "Disconnects wifi" );
-  CoreCommands::add( "wifiAP",         CoreWifi::setAPModeCommand,  "Start AP Mode" );
-  CoreCommands::add( "wifiReset",      CoreWifi::resetCommand,      "Reset wifi configuration" );
-  CoreCommands::add( "wifiScan",       CoreWifi::scanAPCommand,     "Scan AP around" );
+  coreController.addCommand( "wifiConnect",    CoreWifi::connectCommand,    "Connects to wifi" );
+  coreController.addCommand( "wifiDisconnect", CoreWifi::disconnectCommand, "Disconnects wifi" );
+  coreController.addCommand( "wifiAP",         CoreWifi::setAPModeCommand,  "Start AP Mode" );
+  coreController.addCommand( "wifiReset",      CoreWifi::resetCommand,      "Reset wifi configuration" );
+  coreController.addCommand( "wifiScan",       CoreWifi::scanAPCommand,     "Scan AP around" );
 
   CoreSettings::add( "wifi.ssid",          SET_TYPE_STRING,  DEFAULT_SSID );
   CoreSettings::add( "wifi.pass",          SET_TYPE_STRING,  DEFAULT_PWD  );

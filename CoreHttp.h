@@ -16,10 +16,10 @@
 extern ESP8266WebServer WebServer;
 extern String texthtml, save, cancel;
 
-class CoreHttp
+class CoreHttp : protected CoreControllers
 {
 public:
-  static void add(String url, void (*func)(void));
+  static void addUrl(String url, void (*func)(void));
 
   static void setup(void);
   static void loop(void);

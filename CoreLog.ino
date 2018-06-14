@@ -1,5 +1,5 @@
 #include "CoreLog.h"
-#include "CoreSerial.h"
+#include "CoreConsole.h"
 
 Log logs[logMax];
 int logWritePtr      = 0; // Pointer to next write entry
@@ -26,6 +26,11 @@ void CoreLog::setup(void)
 }
 
 void CoreLog::add( byte logLevel, String &msg ) 
+{
+  addLog(logLevel, msg);
+}
+
+void CoreLog::addLog( byte logLevel, String &msg ) 
 {
 #ifdef LOG_LEVEL_PANIC
   Serial.println(__PRETTY_FUNCTION__);
@@ -77,7 +82,7 @@ void CoreLog::display(String &line, Log *log )
 
 void CoreLog::flushSerial(void)
 {
-  if (CoreSerial::isActive())
+  if (coreConsole.isActive())
   {
 #ifdef LOG_LEVEL_PANIC
   Serial.println(__PRETTY_FUNCTION__);

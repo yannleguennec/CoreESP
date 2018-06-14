@@ -2,7 +2,8 @@
 
 #include "CoreSystem.h"
 #include "CoreLog.h"
-#include "CoreSerial.h"
+#include "CoreConsole.h"
+#include "CoreControllers.h"
 #include "CoreCommands.h"
 #include "CoreSettings.h"
 #include "CoreWifi.h"
@@ -26,9 +27,9 @@ void setup(void)
   CoreSettings::init();
   CoreLog::setup();
   CoreHttp::setup();
-  CoreSerial::setup();
+  coreConsole.setup();
   CoreSettings::setup();
-  CoreCommands::setup();
+  coreCommands.setup();
   CorePlugins::setup();
   CoreDevices::setup();
   CoreWifi::setup();
@@ -75,7 +76,7 @@ void loopSlow(void)
 void loop(void)
 {
   CoreSystem::loop();
-  CoreSerial::loop();
+  coreConsole.loop();
   CoreHttp::loop();
 
   schedule( loopFast,    loopFastDelay );

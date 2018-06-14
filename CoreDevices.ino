@@ -12,11 +12,11 @@ void CoreDevices::setup(void)
 #ifdef LOG_LEVEL_PANIC
   Serial.println(__PRETTY_FUNCTION__);
 #endif
-  CoreHttp::add("/devices", CoreDevices::listWeb);
-  CoreHttp::add("/device", CoreDevices::setWeb);
+  CoreHttp::addUrl("/devices", CoreDevices::listWeb);
+  CoreHttp::addUrl("/device", CoreDevices::setWeb);
 
-  CoreCommands::add("devices", CoreDevices::listCommand, "List the devices");
-  CoreCommands::add("device",  CoreDevices::setCommand,  "Configure or display device");
+  coreController.addCommand("devices", CoreDevices::listCommand, "List the devices");
+  coreController.addCommand("device",  CoreDevices::setCommand,  "Configure or display device");
 
   forEachDevice(setup);
 }
@@ -75,14 +75,20 @@ void CoreDevices::listCommand(String& res, char** block)
   }
 }
 
+#define param(x) block[x]
+
 void CoreDevices::setCommand(String& res, char** block)
 {
 #ifdef LOG_LEVEL_PANIC
   Serial.println(__PRETTY_FUNCTION__);
 #endif
-  String log = F("Device :");
+  int deviceNo = atoi( param(1) );
+  String log = F("Device ");
+  log += deviceNo;
+  log += F(" : ");
   CoreLog::add(LOG_LEVEL_INFO, log);
-
+  
+  
 
 }
 
@@ -114,22 +120,6 @@ void CoreDevices::listWeb(void)
     line = deviceNo;
     line += F(" : ");
 
-    //    if ( device[ deviceNo ] && !device[ deviceNo ]->saved() )
-    //    {
-    //      // If device is set but not saved, just delete it,
-    //      delete device[ deviceNo ];
-    //      device[ deviceNo ] = NULL;
-    //    }
-
-    //    String js;
-    //    js += "redirect('/device?deviceNo=";
-    //    js += deviceNo;
-    //    js += "&pluginNo=' + this.options[ this.selectedIndex ].value); ";
-
-    // How can I choose between onClick and onChange ?
-    // onClick in /devices
-    // onChange in ./device
-
     String name = F("None");
     String url = F("redirect('/device?deviceNo=");
     url += deviceNo;
@@ -141,23 +131,6 @@ void CoreDevices::listWeb(void)
     }
     url += "');";
     CoreHttp::button(line, name, url);
-    //    CoreHttp::select(line, F("pluginId"), js);
-    //    CoreHttp::option(line, "None", 0);
-    //    CorePlugins *plugin = CorePlugins::first();
-    //    while (plugin)
-    //    {
-    //      String name = plugin->toString();
-    //      bool selected = false;
-    //
-    //      // Manque le option active !!!
-    //      if (device[ deviceNo ])
-    //        selected = ( device[ deviceNo ]->pluginNumber() == plugin->pluginNumber() );
-    //
-    //      CoreHttp::option(line, name, plugin->pluginNumber(), selected);
-    //
-    //      plugin = CorePlugins::next();
-    //    }
-    //    CoreHttp::select(line);
     CoreHttp::tableLine(html, "", line);
   }
 

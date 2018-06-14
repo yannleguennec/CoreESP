@@ -62,8 +62,8 @@ void CorePlugins::setup(void)
    CoreLog::add(LOG_LEVEL_DEBUG, log);
 #endif
 
-   CoreHttp::add( "/plugins", CorePlugins::listWeb );
-   CoreCommands::add("plugins", CorePlugins::listCommand, "List plugins");
+   CoreHttp::addUrl( "/plugins", CorePlugins::listWeb );
+   coreController.addCommand("plugins", CorePlugins::listCommand, "List plugins");
 }
 
 CorePlugins* CorePlugins::factory() 

@@ -28,9 +28,9 @@ void CoreSettings::setup(void)
   CoreLog::add(LOG_LEVEL_DEBUG, log );
 #endif
 
-  CoreCommands::add( "set",    CoreSettings::set,    "Modify or display settings value"     );
-  CoreCommands::add( "load",   CoreSettings::load,   "Loads configuration from flash"       );
-  CoreCommands::add( "save",   CoreSettings::save,   "Saves current configuration to flash" );
+  coreController.addCommand( "set",    CoreSettings::set,    "Modify or display settings value"     );
+  coreController.addCommand( "load",   CoreSettings::load,   "Loads configuration from flash"       );
+  coreController.addCommand( "save",   CoreSettings::save,   "Saves current configuration to flash" );
 
   CoreSettings::add( "system.name",        SET_TYPE_STRING,  DEFAULT_NAME     );
   CoreSettings::add( "system.unit",        SET_TYPE_INT,     DEFAULT_UNIT     );

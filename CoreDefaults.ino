@@ -11,8 +11,8 @@
 #define DEFAULT_PASSWORD      ""
 //#define DEFAULT_PASSWORD      "yann"
 
-#define DEFAULT_SSID   ""
-#define DEFAULT_PWD    ""
+#define DEFAULT_SSID   "Artilect_Fablab"
+#define DEFAULT_PWD "moto jaune"
 
 #define DEFAULT_AP_SSID "Yann_"
 #define DEFAULT_AP_PWD "configesp"
