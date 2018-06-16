@@ -13,7 +13,7 @@
 #define DEFAULT_SSID   ""
 #define DEFAULT_PWD    ""
 
-#define DEFAULT_AP_SSID "Yann_"
+#define DEFAULT_AP_SSID "CoreESP_"
 #define DEFAULT_AP_PWD "configesp"
 
 #define DEFAULT_IP         "0.0.0.0"
