@@ -6,7 +6,7 @@ extern "C" {
 // https://github.com/dancol90/ESP8266Ping - GNU LESSER GENERAL PUBLIC LICENSE
 
 #include "CoreWifi.h"
-#include "CoreControllers.h"
+#include "CoreCommands.h"
 
 // Timeouts
 #define WIFI_RETRIES              3
