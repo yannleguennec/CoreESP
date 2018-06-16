@@ -7,6 +7,7 @@
 
 CoreConsole::CoreConsole(void)
 {
+  registerControl(this);
   serialActive = false;
 }
 
@@ -50,7 +51,7 @@ void CoreConsole::loop(void)
 #endif
         buffer[bufferNb] = '\0';
         String res, command = buffer;
-        execute( res, command );
+        coreCommand.execute( res, command );
         // Display result to console
         Serial.println(res);
         bufferNb = 0;

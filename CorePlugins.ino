@@ -63,7 +63,7 @@ void CorePlugins::setup(void)
 #endif
 
    CoreHttp::addUrl( "/plugins", CorePlugins::listWeb );
-   coreController.addCommand("plugins", CorePlugins::listCommand, "List plugins");
+   coreCommand.addCommand("plugins", CorePlugins::listCommand, "List plugins");
 }
 
 CorePlugins* CorePlugins::factory() 

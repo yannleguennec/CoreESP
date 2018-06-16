@@ -13,10 +13,14 @@ int WebLoggedInTimer = 300;
 // Common strings
 String texthtml, ignoreValue, save, cancel;
 
-
 byte loginTimeout = 0; // Not logged in at start
 int lineNo = 0;
 int currentMenu = 0;
+
+CoreHttp::CoreHttp(void)
+{
+  registerControl(this);
+}
 
 void CoreHttp::addUrl(String url, void (*func)(void))
 {
@@ -512,14 +516,14 @@ void CoreHttp::handleConfigSave(String &res)
       line += '\'';
 
       //CoreLog::add(LOG_LEVEL_INFO, line);
-      coreCommands.execute( res, line );
+      coreCommand.execute( res, line );
     }
 
     setting = CoreSettings::next();
   }
   line = "save";
   res = "";
-  coreController.execute( res, line );
+  coreCommand.execute( res, line );
 }
 
 void CoreHttp::handleConfig(void)
@@ -627,7 +631,7 @@ void CoreHttp::handleToolsCommands(String &res, String &line)
   log += line;
   log += '\'';
   CoreLog::add(LOG_LEVEL_INFO, log);
-  coreController.execute( res, line );
+  coreCommand.execute( res, line );
 }
 
 void CoreHttp::handleTools(void)
@@ -713,7 +717,7 @@ void CoreHttp::handleLog(void)
   String reply, res, line = WebServer.arg("cmd");
 
   if (line.length() != 0)
-    coreController.execute(res, line);
+    coreCommand.execute(res, line);
 
   pageHeader(reply, MENU_ADVANCED);
   reply += res;

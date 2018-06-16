@@ -3,7 +3,7 @@
 #include "CoreSystem.h"
 #include "CoreLog.h"
 #include "CoreConsole.h"
-#include "CoreControllers.h"
+#include "CoreControls.h"
 #include "CoreCommands.h"
 #include "CoreSettings.h"
 #include "CoreWifi.h"
@@ -26,10 +26,11 @@ void setup(void)
   CoreSystem::setup();
   CoreSettings::init();
   CoreLog::setup();
+  coreControl.setup();
   CoreHttp::setup();
   coreConsole.setup();
   CoreSettings::setup();
-  coreCommands.setup();
+  coreCommand.setup();
   CorePlugins::setup();
   CoreDevices::setup();
   CoreWifi::setup();

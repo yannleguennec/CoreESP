@@ -45,13 +45,13 @@ void CoreWifi::setup()
   CoreLog::add(LOG_LEVEL_DEBUG, log);
 #endif
 
-  coreController.addCommand( "ping",   CoreWifi::pingCommand, "Pings hostname or IP" );
+  coreCommand.addCommand( "ping",   CoreWifi::pingCommand, "Pings hostname or IP" );
 
-  coreController.addCommand( "wifiConnect",    CoreWifi::connectCommand,    "Connects to wifi" );
-  coreController.addCommand( "wifiDisconnect", CoreWifi::disconnectCommand, "Disconnects wifi" );
-  coreController.addCommand( "wifiAP",         CoreWifi::setAPModeCommand,  "Start AP Mode" );
-  coreController.addCommand( "wifiReset",      CoreWifi::resetCommand,      "Reset wifi configuration" );
-  coreController.addCommand( "wifiScan",       CoreWifi::scanAPCommand,     "Scan AP around" );
+  coreCommand.addCommand( "wifiConnect",    CoreWifi::connectCommand,    "Connects to wifi" );
+  coreCommand.addCommand( "wifiDisconnect", CoreWifi::disconnectCommand, "Disconnects wifi" );
+  coreCommand.addCommand( "wifiAP",         CoreWifi::setAPModeCommand,  "Start AP Mode" );
+  coreCommand.addCommand( "wifiReset",      CoreWifi::resetCommand,      "Reset wifi configuration" );
+  coreCommand.addCommand( "wifiScan",       CoreWifi::scanAPCommand,     "Scan AP around" );
 
   CoreSettings::add( "wifi.ssid",          SET_TYPE_STRING,  DEFAULT_SSID );
   CoreSettings::add( "wifi.pass",          SET_TYPE_STRING,  DEFAULT_PWD  );

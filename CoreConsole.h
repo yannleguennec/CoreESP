@@ -3,16 +3,16 @@
 
 #define bufferMax 128
 
-#include "CoreControllers.h"
+#include "CoreControls.h"
 
 // This object should inherit from a common object for log activities
-class CoreConsole : protected CoreControllers
+class CoreConsole : protected CoreControls
 {
-  typedef CoreControllers __super;
-
   bool serialActive;
   char buffer[bufferMax + 1];
   int  bufferNb=0;
+protected:
+  typedef CoreControls __super;
 
 public:
   CoreConsole(void);
