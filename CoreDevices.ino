@@ -15,8 +15,8 @@ void CoreDevices::setup(void)
   CoreHttp::addUrl("/devices", CoreDevices::listWeb);
   CoreHttp::addUrl("/device", CoreDevices::setWeb);
 
-  coreController.addCommand("devices", CoreDevices::listCommand, "List the devices");
-  coreController.addCommand("device",  CoreDevices::setCommand,  "Configure or display device");
+  coreCommand.addCommand("devices", CoreDevices::listCommand, "List the devices");
+  coreCommand.addCommand("device",  CoreDevices::setCommand,  "Configure or display device");
 
   forEachDevice(setup);
 }
@@ -88,7 +88,7 @@ void CoreDevices::setCommand(String& res, char** block)
   log += F(" : ");
   CoreLog::add(LOG_LEVEL_INFO, log);
   
-  
+  res += log;
 
 }
 
