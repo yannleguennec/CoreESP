@@ -11,18 +11,19 @@ class CoreConsole : protected CoreControls
   bool serialActive;
   char buffer[bufferMax + 1];
   int  bufferNb=0;
+  
 protected:
   typedef CoreControls __super;
 
 public:
   CoreConsole(void);
 
-  void setup(void);
-  void loop(void);
+  virtual void setup(void);
+  virtual void loop(void);
 
   bool isActive(void) { return serialActive; };
 };
 
-CoreConsole coreConsole;
+extern CoreConsole coreConsole;
 
 #endif

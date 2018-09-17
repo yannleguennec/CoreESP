@@ -38,7 +38,7 @@ void CoreSettings::setup(void)
 
 }
 
-void CoreSettings::add(char *name, char type, int value)
+void CoreSettings::add(const char *name, char type, int value)
 {
 #ifdef LOG_LEVEL_PANIC
   Serial.println(__PRETTY_FUNCTION__);
@@ -48,7 +48,7 @@ void CoreSettings::add(char *name, char type, int value)
     setting[ settingNo ].defvalue.i = setting[ settingNo ].value.i = value;
 }
 
-void CoreSettings::add(char *name, char type, char *value)
+void CoreSettings::add(const char *name, char type, const char *value)
 {
 #ifdef LOG_LEVEL_PANIC
   Serial.println(__PRETTY_FUNCTION__);
@@ -61,7 +61,7 @@ void CoreSettings::add(char *name, char type, char *value)
   }
 }
 
-void CoreSettings::add(char *name, char type, String &value)
+void CoreSettings::add(const char *name, char type, String &value)
 {
 #ifdef LOG_LEVEL_PANIC
   Serial.println(__PRETTY_FUNCTION__);
@@ -75,7 +75,7 @@ void CoreSettings::add(char *name, char type, String &value)
 }
 
 
-int CoreSettings::add(char *name, char type)
+int CoreSettings::add(const char *name, char type)
 {
 #ifdef LOG_LEVEL_PANIC
   Serial.println(__PRETTY_FUNCTION__);
@@ -125,7 +125,7 @@ Setting *CoreSettings::next(void)
   return NULL;
 }
 
-int CoreSettings::getInt( char *name )
+int CoreSettings::getInt( const char *name )
 {
 #ifdef LOG_LEVEL_PANIC
   Serial.println(__PRETTY_FUNCTION__);
@@ -135,7 +135,7 @@ int CoreSettings::getInt( char *name )
   return 0;
 }
 
-char *CoreSettings::getChar( char *name )
+char *CoreSettings::getChar( const char *name )
 {
 #ifdef LOG_LEVEL_PANIC
   Serial.println(__PRETTY_FUNCTION__);
@@ -145,7 +145,7 @@ char *CoreSettings::getChar( char *name )
   return NULL;
 }
 
-String *CoreSettings::getString( char *name )
+String *CoreSettings::getString( const char *name )
 {
 #ifdef LOG_LEVEL_PANIC
   Serial.println(__PRETTY_FUNCTION__);
@@ -156,7 +156,7 @@ String *CoreSettings::getString( char *name )
 }
 
 
-Setting *CoreSettings::getSetting( char *name, char type)
+Setting *CoreSettings::getSetting( const char *name, char type)
 {
 #ifdef LOG_LEVEL_PANIC
   Serial.println(__PRETTY_FUNCTION__);
@@ -192,11 +192,12 @@ Setting *CoreSettings::getSetting( char *name, char type)
   return NULL;
 }
 
-void CoreSettings::defaults(String &res, char **blocks)
+void CoreSettings::defaults(String &res, char **)
 {
 #ifdef LOG_LEVEL_PANIC
   Serial.println(__PRETTY_FUNCTION__);
 #endif
+  res += F("Defaults settings loaded.");
   String log = F("SETS : Loading defaults settings...");
   CoreLog::add(LOG_LEVEL_INFO, log);
 
@@ -204,7 +205,7 @@ void CoreSettings::defaults(String &res, char **blocks)
     setting[ settingNo ].value = setting[ settingNo ].defvalue;
 }
 
-void CoreSettings::load(String &res, char **blocks)
+void CoreSettings::load(String &, char **)
 {
 #ifdef LOG_LEVEL_PANIC
   Serial.println(__PRETTY_FUNCTION__);
@@ -222,7 +223,7 @@ void CoreSettings::load(String &res, char **blocks)
   }
 }
 
-void CoreSettings::save(String &res, char **blocks)
+void CoreSettings::save(String &res, char **)
 {
 #ifdef LOG_LEVEL_PANIC
   Serial.println(__PRETTY_FUNCTION__);
@@ -239,7 +240,7 @@ void CoreSettings::save(String &res, char **blocks)
   CoreLog::add(LOG_LEVEL_INFO, log);
 }
 
-int CoreSettings::search(char *str)
+int CoreSettings::search( const char *str)
 {
 #ifdef LOG_LEVEL_PANIC
   Serial.println(__PRETTY_FUNCTION__);

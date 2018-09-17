@@ -8,6 +8,7 @@
 #include "CoreSettings.h"
 #include "CoreWifi.h"
 #include "CoreHttp.h"
+#include "CoreMqtt.h"
 #include "CoreDevices.h"
 
 // Definition des plugins :
@@ -23,18 +24,18 @@
 
 void setup(void)
 {
-  CoreSystem::setup();
+  coreSystem.setup();
   CoreSettings::init();
   CoreLog::setup();
-  coreControl.setup();
-  CoreHttp::setup();
+  coreControls.setup();
+  coreHttp.setup();
   coreConsole.setup();
   CoreSettings::setup();
   coreCommand.setup();
-  CorePlugins::setup();
-  CoreDevices::setup();
+  corePlugins.setup();
+  coreDevices.setup();
   CoreWifi::setup();
-//  //CoreMqtt::setup();
+  coreMqtt.setup();
 
   pinMode(LED_BUILTIN, OUTPUT);
 }
@@ -57,28 +58,33 @@ void ledToggle(void)
 
 void loopFast(void)
 {
-  CoreDevices::loopFast();
+  coreDevices.loopFast();
   ledToggle();
 }
 
 void loopMedium(void)
 {
   CoreWifi::loopMedium();
-  CoreHttp::loopMedium();
-  CoreDevices::loopMedium();
+  //coreControls.loopMedium();
+  coreDevices.loopMedium();
+  coreHttp.loopMedium();
+  coreMqtt.loopMedium();
 }
 
 void loopSlow(void)
 {
-  CoreSystem::loopSlow();
-  CoreDevices::loopSlow();
+  coreSystem.loopSlow();
+  coreDevices.loopSlow();
 }
 
 void loop(void)
 {
-  CoreSystem::loop();
+  coreSystem.loop();
+  //coreControls.loop();
+  
   coreConsole.loop();
-  CoreHttp::loop();
+  coreHttp.loop();
+  coreMqtt.loop();
 
   schedule( loopFast,    loopFastDelay );
   schedule( loopMedium,  loopMediumDelay  );

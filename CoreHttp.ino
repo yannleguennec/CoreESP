@@ -19,7 +19,7 @@ int currentMenu = 0;
 
 CoreHttp::CoreHttp(void)
 {
-  registerControl(this);
+  debug="DeBuG Http";
 }
 
 void CoreHttp::addUrl(String url, void (*func)(void))
@@ -39,6 +39,7 @@ void CoreHttp::setup()
   String log = F("HTTP : Initialization.");
   CoreLog::add(LOG_LEVEL_DEBUG, log);
 #endif
+  registerControl("Http", this);
 
   // Initialize common strings
   texthtml = F("text/html");
@@ -47,10 +48,10 @@ void CoreHttp::setup()
   cancel = F("<span class='cross'> Cancel</span>");
 
   // Prepare webserver pages handling
-  CoreHttp::addUrl( "/",        CoreHttp::handleRoot    );
-  CoreHttp::addUrl( "/log",     CoreHttp::handleLog     );
-  CoreHttp::addUrl( "/config",  CoreHttp::handleConfig  );
-  CoreHttp::addUrl( "/tools",   CoreHttp::handleTools   );
+  coreHttp.addUrl( "/",        coreHttp.handleRoot    );
+  coreHttp.addUrl( "/log",     coreHttp.handleLog     );
+  coreHttp.addUrl( "/config",  coreHttp.handleConfig  );
+  coreHttp.addUrl( "/tools",   coreHttp.handleTools   );
 
   /*  WebServer.on("/hardware", handle_hardware);
     WebServer.on("/devices", handle_devices);
@@ -406,6 +407,9 @@ void CoreHttp::handleRoot(void)
   line += F(" )");
   tableLine(html, F("Load:"), line);
   //--------------------------------------------------------------------------
+  line = ESP.getCycleCount();
+  tableLine(html, F("Cycle count :"), line);
+  //--------------------------------------------------------------------------
   line = "";
   CoreSystem::format_time(line, millis() / 1000);
   tableLine(html, F("Uptime:"), line);
@@ -536,7 +540,7 @@ void CoreHttp::handleConfig(void)
   CoreLog::add(LOG_LEVEL_DEBUG, log);
 #endif
 
-  if (!CoreHttp::isLoggedIn())
+  if (!coreHttp.isLoggedIn())
     return;
 
   String html, line, res;
@@ -595,7 +599,7 @@ void CoreHttp::handleConfig(void)
     }
     
     line = "";
-    CoreHttp::input(line, setting->name, value, type);
+    coreHttp.input(line, setting->name, value, type);
     tableLine(html, setting->name, line);
 
     setting = CoreSettings::next();
@@ -644,7 +648,7 @@ void CoreHttp::handleTools(void)
   CoreLog::add(LOG_LEVEL_DEBUG, log);
 #endif
 
-  if (!CoreHttp::isLoggedIn())
+  if (!coreHttp.isLoggedIn())
     return;
 
   String html, line, res;
@@ -669,7 +673,7 @@ void CoreHttp::handleTools(void)
   //--------------------------------------------------------------------------
   line =  F("<form>");
   line += F("IP Address : ");
-  CoreHttp::input(line, "arg[1]", "8.8.8.8");
+  coreHttp.input(line, "arg[1]", "8.8.8.8");
   line += F("<input type='submit' name='cmd' value='ping'>");
   line += F("</form>");
   tableLine(html, (char*)NULL, line);
@@ -711,7 +715,7 @@ void CoreHttp::handleLog(void)
 #ifdef LOG_LEVEL_PANIC
   Serial.println(__PRETTY_FUNCTION__);
 #endif
-  if (!CoreHttp::isLoggedIn())
+  if (!coreHttp.isLoggedIn())
     return;
 
   String reply, res, line = WebServer.arg("cmd");
@@ -749,4 +753,7 @@ void CoreHttp::handleLog(void)
   pageFooter(reply);
   WebServer.send(200, texthtml, reply);
 }
+
+CoreHttp coreHttp;
+
 

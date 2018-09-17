@@ -9,7 +9,7 @@ int logReadPtrMqtt   = 0; // Pointer for read to Mqtt
 int logIterPtr       = 0; // Pointer for iterating amongst logs (web)
 
 #define logLevelMax 5
-char *logLevelMsg[logLevelMax+1] = { "<ERR > ", "<INFO> ", "<DEBG> ", "<DBG+> ", "<DB++> " };
+const char *logLevelMsg[logLevelMax+1] = { "<ERR > ", "<INFO> ", "<DEBG> ", "<DBG+> ", "<DB++> " };
 
 #define logIncr(x) (x)=(((x)       +1)%logMax)
 #define logDecr(x) (x)=(((x)+logMax-1)%logMax)

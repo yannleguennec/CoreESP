@@ -1,9 +1,9 @@
 #include "CoreSystem.h"
 
 // Load average vars
-unsigned long loopCounter = 0;
-unsigned long loopCounterLast = 0;
-unsigned long loopCounterMax  = 1;
+ulong CoreSystem::loopCounter = 0;
+ulong CoreSystem::loopCounterLast = 0;
+ulong CoreSystem::loopCounterMax  = 1;
 
 void CoreSystem::setup(void)
 {
@@ -13,6 +13,7 @@ void CoreSystem::setup(void)
 #ifdef LOG_LEVEL_PANIC
   Serial.println(__PRETTY_FUNCTION__);
 #endif
+  delay(500);
 }
 
 void CoreSystem::loop(void)
@@ -54,17 +55,17 @@ void CoreSystem::loopSlow(void)
   }
 }
 
-unsigned long CoreSystem::getLoadAverage()
+ulong CoreSystem::getLoadAverage()
 {
   return 100 - (100 * loopCounterLast / loopCounterMax);
 }
 
-unsigned long CoreSystem::getLoopCounterLast(void)
+ulong CoreSystem::getLoopCounterLast(void)
 {
   return loopCounterLast;
 }
 
-unsigned long CoreSystem::getLoopCounterMax(void)
+ulong CoreSystem::getLoopCounterMax(void)
 {
   return loopCounterMax;
 }
@@ -89,10 +90,6 @@ void CoreSystem::format_time(String &str, unsigned long now)// This should retur
   else         sprintf_P(buffer, PSTR("%us"), s);
 
   str += buffer;
-}
-
-extern "C" {
-#include "user_interface.h"
 }
 
 String CoreSystem::IPMaskGW(int interface, bool mask, bool gw)
@@ -156,4 +153,6 @@ unsigned long CoreSystem::getBuild()
          (BUILD_MIN   * 100) +
          (BUILD_SEC   * 1);
 }
+
+CoreSystem coreSystem;
 

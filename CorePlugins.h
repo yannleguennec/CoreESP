@@ -1,13 +1,16 @@
 #ifndef __CorePlugin__
 #define __CorePlugin__
 
+#include "Array.h"
+#define pluginsMax 20
+
 class CorePlugins
 {
 protected:
   bool _saved;
   
   // Infos du plugin
-  int    _pluginNumber;
+  size_t    _pluginNumber;
   String _pluginName;
   String _pluginDesc;
 
@@ -16,9 +19,14 @@ protected:
   String _deviceComment;
   
 public:
+  static std::array<CorePlugins*, pluginsMax> plugins;
+  static size_t pluginNb;
+
   CorePlugins(void) { _saved = false; };
   CorePlugins(String pluginName, String pluginDesc);
-  void registerPlugin();
+  virtual ~CorePlugins() {};
+
+  void registerPlugin( String &pluginName, String &pluginDesc );
 
   void loopFast(void);
   void loopMedium(void);
@@ -26,8 +34,8 @@ public:
 
   virtual CorePlugins* factory(void);
   
-  void pluginNumber( int pluginNumber ) { _pluginNumber = pluginNumber; };
-  int pluginNumber( void ) { return _pluginNumber; };
+  void pluginNumber( size_t pluginNumber ) { _pluginNumber = pluginNumber; };
+  size_t pluginNumber( void ) { return _pluginNumber; };
   
   void pluginName( String& pluginName ) { _pluginName = pluginName; };
   String& pluginName( void ) { return _pluginName; };
@@ -50,18 +58,14 @@ public:
   bool saved(void) { return _saved; };
   void save(void) { _saved = true; };
 
-  static void setup(void);
+  virtual void setup(void);
   
   static void listCommand(String &, char **);
   static void listWeb( void );
-  
-  static CorePlugins *first(void);
-  static CorePlugins *next(void);
 
+  size_t size(void) { return pluginNb; };
 };
 
-#define pluginMax 20
-extern CorePlugins *plugin[ pluginMax ];
-extern int pluginNb;
+extern CorePlugins corePlugins;
 
 #endif

@@ -1,21 +1,32 @@
 #ifndef __CoreControls__
 #define __CoreControls__
 
-#define controlMax 5
+#include <forward_list>
 
-class CoreControls
+class CoreControls;
+class CoreControls 
 {
-  static CoreControls *controls[controlMax];
-  static int controlNb;
-
-protected:
-  void registerControl( CoreControls* control);
-
 public:
+  static std::forward_list<CoreControls*> controls;
+  static uint controlsNb;
+  
+  String name;
+  String debug;
+
   CoreControls(void);
-  void setup(void);
+  
+  virtual void setup(void);
+  virtual void loop(void);
+  virtual void loopSlow(void);
+  virtual void loopMedium(void);
+  virtual void loopFast(void);
+
+  void registerControl( String name, CoreControls *control );
+  
+  static void listCommand( String &, char** );
+//  static Array<CoreControls> &list(void) { return CoreControls::controls; };
 };
 
-extern CoreControls coreControl;
+extern CoreControls coreControls;
 
 #endif

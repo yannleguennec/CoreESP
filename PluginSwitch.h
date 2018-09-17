@@ -18,15 +18,15 @@ public:
   PluginSwitch(String pluginName, String pluginDesc) : __super(pluginName, pluginDesc) {};
   
   virtual CorePlugins* factory(void);
-  static void setup();
+  virtual void setup();
 
-  String toString(void) { return __super::toString() + " (Pin " + _pin + ")"; };
+  virtual String toString(void) { return __super::toString() + " (Pin " + _pin + ")"; };
 
   virtual void webForm(String& html);
   virtual void webSubmit( void );
   
-  void loopFast();     // to get switch position
-  void loopMedium();   // to send infos
+  virtual void loopFast();     // to get switch position
+  virtual void loopMedium();   // to send infos
 };
 
 #endif

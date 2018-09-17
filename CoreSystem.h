@@ -5,22 +5,29 @@
 
 class CoreSystem
 {
+  static ulong loopCounter;
+  static ulong loopCounterLast;
+  static ulong loopCounterMax;
+
 public:
+  
   // Helper functions
   static void format_time(String &str, unsigned long now);
   static String IPMaskGW(int ip_if, bool mask, bool gw);
   static uint8_t cidr(IPAddress ip);
 
-  static unsigned long getVersion(void);
-  static unsigned long getBuild(void);
-  static unsigned long getLoadAverage(void);
-  static unsigned long getLoopCounterLast(void);
-  static unsigned long getLoopCounterMax(void);
+  static ulong getVersion(void);
+  static ulong getBuild(void);
+  static ulong getLoadAverage(void);
+  static ulong getLoopCounterLast(void);
+  static ulong getLoopCounterMax(void);
 
-  static void setup(void);
-  static void loop(void);
-  static void loopSlow(void);
+  void setup(void);
+  void loop(void);
+  void loopSlow(void);
 
 };
+
+extern CoreSystem coreSystem;
 
 #endif

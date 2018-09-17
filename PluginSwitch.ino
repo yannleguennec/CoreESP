@@ -33,28 +33,28 @@ void PluginSwitch::webForm( String &html )
 
   // Select switch type
   line = "";
-  CoreHttp::select(line, "type");
-  CoreHttp::option(line, "Switch", 0);
-  CoreHttp::option(line, "Dimmer", 1);
-  CoreHttp::select(line);
-  CoreHttp::tableLine(html, "Type", line);
+  coreHttp.select(line, "type");
+  coreHttp.option(line, "Switch", 0);
+  coreHttp.option(line, "Dimmer", 1);
+  coreHttp.select(line);
+  coreHttp.tableLine(html, "Type", line);
 
     // Select switch pin
   line="";
-  CoreHttp::select(line, "pin");  
-  CoreHttp::option(line, "1", 1);
-  CoreHttp::option(line, "3", 3);
-  CoreHttp::option(line, "5", 5);
-  CoreHttp::option(line, "7", 7);
-  CoreHttp::select(line);
-  CoreHttp::tableLine(html, "Pin", line);
+  coreHttp.select(line, "pin");  
+  coreHttp.option(line, "1", 1);
+  coreHttp.option(line, "3", 3);
+  coreHttp.option(line, "5", 5);
+  coreHttp.option(line, "7", 7);
+  coreHttp.select(line);
+  coreHttp.tableLine(html, "Pin", line);
 
   line="";
-  CoreHttp::select(line, "inverse");
-  CoreHttp::option(line, "No", 0);
-  CoreHttp::option(line, "Yes", 1);
-  CoreHttp::select(line);
-  CoreHttp::tableLine(html, "Inverse", line);
+  coreHttp.select(line, "inverse");
+  coreHttp.option(line, "No", 0);
+  coreHttp.option(line, "Yes", 1);
+  coreHttp.select(line);
+  coreHttp.tableLine(html, "Inverse", line);
 }
 
 void PluginSwitch::webSubmit( void )

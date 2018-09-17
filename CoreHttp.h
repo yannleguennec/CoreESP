@@ -24,9 +24,9 @@ public:
   CoreHttp(void);
   static void addUrl(String url, void (*func)(void));
 
-  static void setup(void);
-  static void loop(void);
-  static void loopMedium(void);
+  void setup(void);
+  virtual void loop(void);
+  virtual void loopMedium(void);
 
   static void pageHeader(String& html, int activeMenu=MENU_OFF);
   static void pageFooter(String &html);
@@ -52,6 +52,7 @@ public:
   static void handleLog(void);
 };
 
+extern CoreHttp coreHttp;
 
 #endif
 

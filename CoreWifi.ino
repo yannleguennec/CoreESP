@@ -283,7 +283,7 @@ void CoreWifi::configAP()
 //********************************************************************************
 // Start Wifi AP Mode
 //********************************************************************************
-void CoreWifi::setAPModeCommand(String &res, char **block)
+void CoreWifi::setAPModeCommand(String &, char **)
 {
   CoreWifi::setAPMode();
 }
@@ -291,7 +291,6 @@ void CoreWifi::setAPModeCommand(String &res, char **block)
 void CoreWifi::setAPMode(void)
 {
   String log;
-  char str[20];
 
   if (wifiWait)
   {
@@ -352,7 +351,7 @@ void CoreWifi::waitAPMode()
 //********************************************************************************
 // Connect to Wifi AP
 //********************************************************************************
-void CoreWifi::connectCommand(String &res, char **)
+void CoreWifi::connectCommand(String &, char **)
 {
   CoreWifi::connect();
 }
@@ -557,7 +556,7 @@ void CoreWifi::connected()
 //********************************************************************************
 // Disconnect from Wifi AP
 //********************************************************************************
-void CoreWifi::disconnectCommand(String &res, char**)
+void CoreWifi::disconnectCommand(String &, char**)
 {
   CoreWifi::disconnect();
 }
@@ -654,7 +653,7 @@ void CoreWifi::waitDisconnect()
 //********************************************************************************
 // Disconnect from Wifi AP and reset stored SSID/WPA parameters
 //********************************************************************************
-void CoreWifi::resetCommand(String &res, char**)
+void CoreWifi::resetCommand(String &, char**)
 {
   String log = F("WIFI : Reset...");
   CoreLog::add(LOG_LEVEL_INFO, log);
@@ -693,7 +692,7 @@ void CoreWifi::pingCommand(String &res, char **block)
   }
 }
 
-void CoreWifi::scanAPCommand(String &res, char **block)
+void CoreWifi::scanAPCommand(String &res, char **)
 {
   // Scan for wifi AP around
   int n = WiFi.scanNetworks(true /* Async */, true /* showHidden */);

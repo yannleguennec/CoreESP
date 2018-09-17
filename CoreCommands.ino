@@ -206,7 +206,7 @@ bool CoreCommands::run(String &res, char **block)
   return false;
 }
 
-bool CoreCommands::notFound(String &res, String &line)
+bool CoreCommands::notFound(String &, String &)
 {
 #ifdef LOG_LEVEL_PANIC
   Serial.println(__PRETTY_FUNCTION__);
@@ -240,13 +240,28 @@ void CoreCommands::display(int commandNo)
 }
 
 
-void CoreCommands::info(String &res, char **block)
+void CoreCommands::info(String &, char **)
 {
 #ifdef LOG_LEVEL_PANIC
   Serial.println(__PRETTY_FUNCTION__);
 #endif
   String head = F("CMDS :    ");
   String log = F("CMDS : Informations :");
+  CoreLog::add(LOG_LEVEL_INFO, log);
+ 
+  log = head;
+  log += F("loadAverage : ");
+  log = CoreSystem::getLoadAverage();
+  log += F("% ( ");
+  log += CoreSystem::getLoopCounterLast();
+  log += F(" / ");
+  log += CoreSystem::getLoopCounterMax();
+  log += F(" )");  
+  CoreLog::add(LOG_LEVEL_INFO, log);
+  
+  log = head;
+  log += F("getCycleCount : ");
+  log += ESP.getCycleCount();
   CoreLog::add(LOG_LEVEL_INFO, log);
 
   log = head;
@@ -351,7 +366,7 @@ void CoreCommands::info(String &res, char **block)
   CoreLog::add(LOG_LEVEL_INFO, log);
 }
 
-void CoreCommands::restart(String &res, char **block)
+void CoreCommands::restart(String &, char **)
 {
 #ifdef LOG_LEVEL_PANIC
   Serial.println(__PRETTY_FUNCTION__);
@@ -363,7 +378,7 @@ void CoreCommands::restart(String &res, char **block)
   ESP.reset();
 }
 
-void CoreCommands::reboot(String &res, char **block)
+void CoreCommands::reboot(String &, char **)
 {
 #ifdef LOG_LEVEL_PANIC
   Serial.println(__PRETTY_FUNCTION__);
@@ -375,7 +390,7 @@ void CoreCommands::reboot(String &res, char **block)
   ESP.reset();
 }
 
-void CoreCommands::help(String &res, char **block)
+void CoreCommands::help(String &, char **block)
 {
 #ifdef LOG_LEVEL_PANIC
   Serial.println(__PRETTY_FUNCTION__);

@@ -7,6 +7,8 @@ void PluginLed::setup(void)
 #endif
   String log = F("PluginLed Initialization.");
   CoreLog::add(LOG_LEVEL_INFO, log);
+
+  coreMqtt.registerCallback( "led1", PluginLed::callback );
 }
 
 CorePlugins* PluginLed::factory(void) 
@@ -21,6 +23,18 @@ CorePlugins* PluginLed::factory(void)
   return plugin;
 }
 
+void PluginLed::callback(char* topic, byte* payload, unsigned int length)
+{
+  Serial.print("Led received a message [");
+  Serial.print(topic);
+  Serial.print("] ");
+  for (unsigned int i = 0; i < length; i++) {
+    Serial.print((char)payload[i]);
+  }
+  Serial.println();
+}
+
+
 void PluginLed::webForm( String &html )
 {
 #ifdef LOG_LEVEL_PANIC
@@ -32,35 +46,35 @@ void PluginLed::webForm( String &html )
   
   // Select switch type
   line="";
-  CoreHttp::select(line, "type");
-  CoreHttp::option(line, "OnOff", 0);
-  CoreHttp::option(line, "PWM", 1);
-  CoreHttp::select(line);
-  CoreHttp::tableLine(html, "Type", line);
+  coreHttp.select(line, "type");
+  coreHttp.option(line, "OnOff", 0);
+  coreHttp.option(line, "PWM", 1);
+  coreHttp.select(line);
+  coreHttp.tableLine(html, "Type", line);
 
   // Select switch pin
   line="";
-  CoreHttp::select(line, "pin");  
-  CoreHttp::option(line, "1", 1);
-  CoreHttp::option(line, "3", 3);
-  CoreHttp::option(line, "5", 5);
-  CoreHttp::option(line, "7", 7);
-  CoreHttp::select(line);
-  CoreHttp::tableLine(html, "Pin", line);
+  coreHttp.select(line, "pin");  
+  coreHttp.option(line, "1", 1);
+  coreHttp.option(line, "3", 3);
+  coreHttp.option(line, "5", 5);
+  coreHttp.option(line, "7", 7);
+  coreHttp.select(line);
+  coreHttp.tableLine(html, "Pin", line);
 
   line="";
-  CoreHttp::select(line, "inverse");
-  CoreHttp::option(line, "No", 0);
-  CoreHttp::option(line, "Yes", 1);
-  CoreHttp::select(line);
-  CoreHttp::tableLine(html, "Inverse", line);
+  coreHttp.select(line, "inverse");
+  coreHttp.option(line, "No", 0);
+  coreHttp.option(line, "Yes", 1);
+  coreHttp.select(line);
+  coreHttp.tableLine(html, "Inverse", line);
   
   line="";
-  CoreHttp::select(line, "bootstate");
-  CoreHttp::option(line, "Off", 0);
-  CoreHttp::option(line, "On", 1);
-  CoreHttp::select(line);
-  CoreHttp::tableLine(html, "Boot state", line);
+  coreHttp.select(line, "bootstate");
+  coreHttp.option(line, "Off", 0);
+  coreHttp.option(line, "On", 1);
+  coreHttp.select(line);
+  coreHttp.tableLine(html, "Boot state", line);
 }
 
 void PluginLed::webSubmit( void )

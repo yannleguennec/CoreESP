@@ -30,15 +30,15 @@ public:
   static void init(void);
   static void setup(void);
 
-  static void add(char *name, char type, int value);
-  static void add(char *name, char type, char *value);
-  static void add(char *name, char type, String &value);
+  static void add(const char *name, char type, int value);
+  static void add(const char *name, char type, const char *value);
+  static void add(const char *name, char type, String &value);
 
-  static int        getInt( char* name );
-  static char      *getChar( char* name );
-  static String    *getString( char* name );
+  static int        getInt( const char* name );
+  static char      *getChar( const char* name );
+  static String    *getString( const char* name );
 
-  static Setting   *getSetting( char *name, char type);
+  static Setting   *getSetting( const char *name, char type);
 
   static void defaults(String &res, char **blocks = NULL);
   static void load(String &res, char **blocks = NULL);
@@ -48,9 +48,9 @@ public:
   static Setting *first(void);
   static Setting *next(void);
 private:
-  static int add(char *name, char type);
+  static int add(const char *name, char type);
 
-  static int search(char *str);
+  static int search(const char *str);
   static void display(String &res, int settingNo);
 
 };

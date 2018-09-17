@@ -1,14 +1,10 @@
 #include "CoreConsole.h"
 
-// #define bufferMax 128
-// static char buffer[bufferMax + 1];
-// static int  bufferNb=0;
-// bool serialActive = false;
-
 CoreConsole::CoreConsole(void)
 {
-  registerControl(this);
+  Serial.println( __PRETTY_FUNCTION__ );
   serialActive = false;
+  debug="DeBuG Console";
 }
 
 #ifdef LOG_LEVEL_PANIC
@@ -21,11 +17,14 @@ void CoreConsole::setup(void)
 {
   PANIC_DEBUG();
 
+  registerControl("Console", this);
   serialActive = true;
 #ifndef LOG_LEVEL_DEBUG
   CoreLog::add(LOG_LEVEL_DEBUG, "SERI : Initialization.");
 #endif
 }
+
+for ( ;v=0; );
 
 void CoreConsole::loop(void)
 {
@@ -60,4 +59,5 @@ void CoreConsole::loop(void)
   }
 }
 
+CoreConsole coreConsole;
 

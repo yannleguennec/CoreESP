@@ -32,21 +32,21 @@ void PluginDHT::webForm( String &html )
   
   // Select switch type
   line="";
-  CoreHttp::select(line, "degres");
-  CoreHttp::option(line, "Centigrade", 0);
-  CoreHttp::option(line, "Fahrenheit", 1);
-  CoreHttp::select(line);
-  CoreHttp::tableLine(html, "Degrés", line);
+  coreHttp.select(line, "degres");
+  coreHttp.option(line, "Centigrade", 0);
+  coreHttp.option(line, "Fahrenheit", 1);
+  coreHttp.select(line);
+  coreHttp.tableLine(html, "Degrés", line);
 
   // Select switch pin
   line="";
-  CoreHttp::select(line, "pin");  
-  CoreHttp::option(line, "1", 1);
-  CoreHttp::option(line, "3", 3);
-  CoreHttp::option(line, "5", 5);
-  CoreHttp::option(line, "7", 7);
-  CoreHttp::select(line);
-  CoreHttp::tableLine(html, "Pin", line);
+  coreHttp.select(line, "pin");  
+  coreHttp.option(line, "1", 1);
+  coreHttp.option(line, "3", 3);
+  coreHttp.option(line, "5", 5);
+  coreHttp.option(line, "7", 7);
+  coreHttp.select(line);
+  coreHttp.tableLine(html, "Pin", line);
 }
 
 void PluginDHT::webSubmit( void )
