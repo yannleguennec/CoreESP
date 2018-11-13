@@ -3,13 +3,14 @@
 
 #include <IPAddress.h>
 
-class CoreSystem
+class CoreSystem : public CoreBase
 {
   static ulong loopCounter;
   static ulong loopCounterLast;
   static ulong loopCounterMax;
 
 public:
+  CoreSystem(void);
   
   // Helper functions
   static void format_time(String &str, unsigned long now);
@@ -22,10 +23,13 @@ public:
   static ulong getLoopCounterLast(void);
   static ulong getLoopCounterMax(void);
 
-  void setup(void);
-  void loop(void);
-  void loopSlow(void);
+  virtual void setup(void);
+  virtual void loop(void);
 
+  void handleLoadAverage(void);
+
+  void ledSetup(void);
+  void ledLoop(void);
 };
 
 extern CoreSystem coreSystem;

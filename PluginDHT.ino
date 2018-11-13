@@ -6,7 +6,14 @@ void PluginDHT::setup(void)
   Serial.println(__PRETTY_FUNCTION__);
 #endif
   String log = F("PluginDHT Initialization.");
-  CoreLog::add(LOG_LEVEL_INFO, log);
+  CoreLog::addLog(LOG_LEVEL_INFO, log);
+}
+
+void PluginDHT::loop(void)
+{
+#ifdef LOG_LEVEL_PANIC
+  Serial.println(__PRETTY_FUNCTION__);
+#endif
 }
 
 CorePlugins* PluginDHT::factory(void) 
@@ -57,17 +64,6 @@ void PluginDHT::webSubmit( void )
   __super::webSubmit();
   _degree = atoi( WebServer.arg("degree").begin() );
   _pin = atoi( WebServer.arg("pin").begin() );
-}
-
-void PluginDHT::loopFast(void)
-{
-}
-
-void PluginDHT::loopMedium(void)
-{
-#ifdef LOG_LEVEL_PANIC
-//  Serial.println(__PRETTY_FUNCTION__);
-#endif
 }
 
 PluginDHT pluginDHT("Temp and Moisture (DHT)", "Handle DHT devices");

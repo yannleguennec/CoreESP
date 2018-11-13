@@ -7,11 +7,8 @@
 #define wifiIsNotAvailable() (WiFi.status() == WL_NO_SSID_AVAIL)
 #define wifiIsInactive()     (WiFi.status() == WL_IDLE_STATUS)
 
-class CoreWifi
+class CoreWifi : public CoreBase
 {
-public:
-  static void setup(void);
-  static void loopMedium(void);
 private:
   static void displayState(void);
   static void displayStatus(void);
@@ -31,6 +28,13 @@ private:
   static void waitDisconnect(void);
   
 public:
+  CoreWifi(void);
+
+  virtual void setup(void);
+  virtual void loop(void);
+
+  void handleWifi(void);
+  
   static void connectCommand(String &res, char **b=NULL);
   static void disconnectCommand(String &res, char**b=NULL);
   static void setAPModeCommand(String &res, char **b=NULL);

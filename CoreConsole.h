@@ -18,12 +18,13 @@ protected:
 public:
   CoreConsole(void);
 
+  bool isActive(void) { return serialActive; };
+  void addLog(byte level, String& msg);
+  virtual void log(byte level, String& msg);
+  virtual byte logLevel(void);
+
   virtual void setup(void);
   virtual void loop(void);
-
-  bool isActive(void) { return serialActive; };
 };
-
-extern CoreConsole coreConsole;
 
 #endif

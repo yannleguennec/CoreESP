@@ -6,15 +6,16 @@
 
 #define deviceMax 10
 
-class CoreDevices
+class CoreDevices : public CoreBase
 {
 public:
   static std::array<CorePlugins*,deviceMax> devices;
 
+  CoreDevices(void);
+
   virtual void setup(void);
-  virtual void loopSlow(void);
-  virtual void loopMedium(void);
-  virtual void loopFast(void);
+  virtual void loop(void);
+
 
   void setupPlugin(size_t deviceId, size_t pluginId);
 

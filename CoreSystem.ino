@@ -1,33 +1,46 @@
 #include "CoreSystem.h"
+#include "CoreWifi.h"
 
 // Load average vars
 ulong CoreSystem::loopCounter = 0;
 ulong CoreSystem::loopCounterLast = 0;
 ulong CoreSystem::loopCounterMax  = 1;
 
+CoreSystem::CoreSystem(void) : CoreBase("CoreSystem")
+{
+  PANIC_DEBUG();
+
+  setPriority( prioritySystem );
+}
+
 void CoreSystem::setup(void)
 {
   Serial.begin( 115200 );
   Serial.println();
-  Serial.println("Booting...");
-#ifdef LOG_LEVEL_PANIC
-  Serial.println(__PRETTY_FUNCTION__);
-#endif
+  PANIC_DEBUG();
+  Serial.print("Booting... ");
   delay(500);
+  Serial.println("Ok.");
+  
+  CoreSettings::registerSetting( "system.name",  DEFAULT_NAME     );
+  CoreSettings::registerSetting( "system.unit",  DEFAULT_UNIT     );
+  CoreSettings::registerSetting( "system.pass",  DEFAULT_PASSWORD );
 }
 
 void CoreSystem::loop(void)
 {
+//  PANIC_DEBUG();
   { // handle load average
     loopCounter++;
   }
+
+  schedule( handleLoadAverage, 30000 );
 }
 
-void CoreSystem::loopSlow(void)
+void CoreSystem::handleLoadAverage(void)
 {
-#ifdef LOG_LEVEL_PANIC
-  Serial.println(__PRETTY_FUNCTION__);
-#endif
+  PANIC_DEBUG();
+
   { // Handle load everage
     loopCounterLast = loopCounter;
     if (loopCounterLast > loopCounterMax)
@@ -51,8 +64,35 @@ void CoreSystem::loopSlow(void)
     log += F(", FreeMem ");
     log += ESP.getFreeHeap();
 
-    CoreLog::add(LOG_LEVEL_INFO, log);
+    CoreLog::addLog(LOG_LEVEL_INFO, log);
   }
+  
+  ledLoop();
+}
+
+#define ledPin LED_BUILTIN
+#define divisor 100
+
+void CoreSystem::ledSetup(void)
+{
+  PANIC_DEBUG();
+
+  pinMode(ledPin, OUTPUT);
+}
+
+void CoreSystem::ledLoop(void)
+{
+  PANIC_DEBUG();
+
+  static int count = 0;
+  int numerator = (wifiIsConnected()) ? divisor - 10 : 5;
+
+  if (!(count % divisor))
+    digitalWrite(ledPin, HIGH);
+  else if (!((count + divisor - numerator) % divisor))
+    digitalWrite(ledPin, LOW);
+  
+  count = (count+1) % divisor;
 }
 
 ulong CoreSystem::getLoadAverage()

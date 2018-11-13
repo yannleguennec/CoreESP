@@ -2,29 +2,32 @@
 
 void PluginLed::setup(void)
 {
-#ifdef LOG_LEVEL_PANIC
-  Serial.println(__PRETTY_FUNCTION__);
-#endif
-  String log = F("PluginLed Initialization.");
-  CoreLog::add(LOG_LEVEL_INFO, log);
+  PANIC_DEBUG();
 
-  coreMqtt.registerCallback( "led1", PluginLed::callback );
+  String log = F("PluginLed Initialization.");
+  CoreLog::addLog(LOG_LEVEL_INFO, log);
+
+// note :  a-t-on besoin de faire un subscribe ?
+// Il suffirait que le moteur Mqtt recherche dans tous les objets celui qui a le bon nom
+// et qu'il appelle alors une methode précise pour le prévenir de l'arrivée d'un message.
+// Cela permettrait d'utiliser de la même faćon CoreCommands !!!
+
+  //coreMqtt.subscribe( "led1", this );
 }
 
 CorePlugins* PluginLed::factory(void) 
 {
-#ifdef LOG_LEVEL_PANIC
-  Serial.println(__PRETTY_FUNCTION__);
-#endif
-  CorePlugins* plugin = new PluginLed(*this);
-  //Serial.print( " setting pluginNumber=");
-  //Serial.print( _pluginNumber );
-  //plugin->pluginNumber(_pluginNumber);
-  return plugin;
+  PANIC_DEBUG();
+  PluginLed *led = new PluginLed(*this);
+//  coreMqtt.subscribe( this->deviceName, this );
+
+  return led;
 }
 
 void PluginLed::callback(char* topic, byte* payload, unsigned int length)
 {
+  PANIC_DEBUG();
+  
   Serial.print("Led received a message [");
   Serial.print(topic);
   Serial.print("] ");
@@ -34,12 +37,10 @@ void PluginLed::callback(char* topic, byte* payload, unsigned int length)
   Serial.println();
 }
 
-
 void PluginLed::webForm( String &html )
 {
-#ifdef LOG_LEVEL_PANIC
-  Serial.println(__PRETTY_FUNCTION__);
-#endif
+  PANIC_DEBUG();
+
   String line;
   
   CorePlugins::webForm(html);
@@ -79,48 +80,13 @@ void PluginLed::webForm( String &html )
 
 void PluginLed::webSubmit( void )
 {
-#ifdef LOG_LEVEL_PANIC
-  Serial.println(__PRETTY_FUNCTION__);
-#endif
+  PANIC_DEBUG();
+
   __super::webSubmit();
   _type = atoi( WebServer.arg("type").begin() );
   _pin = atoi( WebServer.arg("pin").begin() );
   _inverse = atoi( WebServer.arg("inverse").begin() );
   _bootState = atoi( WebServer.arg("type").begin() );
-}
-
-void PluginLed::loopFast(void)
-{
-  static int lastButtonState = -1;
-  static unsigned long lastDebounceTime = 0;
-  int reading = digitalRead( this->_pin );
-
-  if (reading != lastButtonState) {
-    // reset the debouncing timer
-    lastDebounceTime = millis();
-  }
-
-  #define debounceDelay 50
-  if ((millis() - lastDebounceTime) > debounceDelay)
-  {
-     if (reading != this->_state)
-      this->_state = reading;
-      String log = "Button change : ";
-      log += this->_state;
-      CoreLog::add(LOG_LEVEL_INFO, log);
-  }
-}
-
-void PluginLed::loopMedium(void)
-{
-#ifdef LOG_LEVEL_PANIC
-  Serial.println(__PRETTY_FUNCTION__);
-#endif
-  String log = F("PluginLed top");
-  CoreLog::add(LOG_LEVEL_INFO, log);
-  log = "@";
-  log += (int)this;
-  CoreLog::add(LOG_LEVEL_INFO, log);
 }
 
 PluginLed pluginLed("Led", "Handle led");

@@ -1,12 +1,44 @@
 #include "PluginSwitch.h"
 
+//int PluginSwitch::states( void )
+//{
+//#ifdef LOG_LEVEL_PANIC
+//  Serial.println(__PRETTY_FUNCTION__);
+//#endif
+//  return pluginStates;
+//}
+
+//void PluginSwitch::states( int states )
+//{
+//#ifdef LOG_LEVEL_PANIC
+//  Serial.println(__PRETTY_FUNCTION__);
+//#endif
+//  pluginStates = states;
+//}
+
 void PluginSwitch::setup(void)
 {
 #ifdef LOG_LEVEL_PANIC
   Serial.println(__PRETTY_FUNCTION__);
 #endif
   String log = F("PluginSwitch Initialization.");
-  CoreLog::add(LOG_LEVEL_INFO, log);
+  CoreLog::addLog(LOG_LEVEL_INFO, log);
+
+  __super::setup();
+}
+
+void PluginSwitch::loop(void)
+{
+  debounce();
+  if ( buttonPressed() )
+  {
+    switchState++;
+    switchState %= switchStates;
+
+    String msg = deviceName();
+    msg += '=';
+    msg += switchState;
+  }
 }
 
 CorePlugins* PluginSwitch::factory(void)
@@ -28,7 +60,7 @@ void PluginSwitch::webForm( String &html )
   Serial.println(__PRETTY_FUNCTION__);
 #endif
   String line;
-  
+
   CorePlugins::webForm(html);
 
   // Select switch type
@@ -39,9 +71,9 @@ void PluginSwitch::webForm( String &html )
   coreHttp.select(line);
   coreHttp.tableLine(html, "Type", line);
 
-    // Select switch pin
-  line="";
-  coreHttp.select(line, "pin");  
+  // Select switch pin
+  line = "";
+  coreHttp.select(line, "pin");
   coreHttp.option(line, "1", 1);
   coreHttp.option(line, "3", 3);
   coreHttp.option(line, "5", 5);
@@ -49,7 +81,7 @@ void PluginSwitch::webForm( String &html )
   coreHttp.select(line);
   coreHttp.tableLine(html, "Pin", line);
 
-  line="";
+  line = "";
   coreHttp.select(line, "inverse");
   coreHttp.option(line, "No", 0);
   coreHttp.option(line, "Yes", 1);
@@ -59,48 +91,11 @@ void PluginSwitch::webForm( String &html )
 
 void PluginSwitch::webSubmit( void )
 {
-#ifdef LOG_LEVEL_PANIC
-  Serial.println(__PRETTY_FUNCTION__);
-#endif
+  PANIC_DEBUG();
+
   __super::webSubmit();
-  _type = atoi( WebServer.arg("type").begin() );
-  _pin = atoi( WebServer.arg("pin").begin() );
-  _inverse = atoi( WebServer.arg("inverse").begin() );
-}
 
-void PluginSwitch::loopFast(void)
-{
-  static int lastButtonState = -1;
-  static unsigned long lastDebounceTime = 0;
-  int reading = digitalRead( this->_pin );
-
-  if (reading != lastButtonState) {
-    // reset the debouncing timer
-    lastDebounceTime = millis();
-  }
-
-  #define debounceDelay 50
-  if ((millis() - lastDebounceTime) > debounceDelay)
-  {
-     if (reading != this->_state)
-      this->_state = reading;
-      String log = F("Button change : ");
-      log += this->_state;
-      CoreLog::add(LOG_LEVEL_INFO, log);
-  }
-}
-
-void PluginSwitch::loopMedium(void)
-{
-#ifdef LOG_LEVEL_PANIC
-  Serial.println(__PRETTY_FUNCTION__);
-#endif
-  String log = F("PluginSwitch top");
-  CoreLog::add(LOG_LEVEL_INFO, log);
-  
-  log = '@';
-  log += (int)this;
-  CoreLog::add(LOG_LEVEL_INFO, log);
+  switchStates = atoi( WebServer.arg("states").begin() );
 }
 
 PluginSwitch pluginSwitch("Switch", "Handle input switch");

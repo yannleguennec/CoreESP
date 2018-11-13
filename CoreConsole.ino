@@ -1,30 +1,38 @@
 #include "CoreConsole.h"
-
-CoreConsole::CoreConsole(void)
+#include "CoreSettings.h"
+CoreConsole::CoreConsole(void) : CoreControls(String("Serial"))
 {
-  Serial.println( __PRETTY_FUNCTION__ );
-  serialActive = false;
-  debug="DeBuG Console";
-}
+  PANIC_DEBUG();
+  setPriority( priorityLog );
+  addFlags( flagLog );;
 
-#ifdef LOG_LEVEL_PANIC
-  #define PANIC_DEBUG() Serial.println(__PRETTY_FUNCTION__);
-#else
-  #define PANIC_DEBUG()
-#endif
+  // Serial.begin(115200);  // This is done in CoreSystem !!!
+  CoreSettings::registerSetting( "log.serialLoglevel",    LOG_LEVEL_DEBUG );
+
+  serialActive = false;
+}
 
 void CoreConsole::setup(void)
 {
   PANIC_DEBUG();
 
-  registerControl("Console", this);
   serialActive = true;
+
 #ifndef LOG_LEVEL_DEBUG
-  CoreLog::add(LOG_LEVEL_DEBUG, "SERI : Initialization.");
+  CoreLog::addLog(LOG_LEVEL_DEBUG, "SERI : Initialization.");
 #endif
 }
 
-for ( ;v=0; );
+void CoreConsole::log(byte level, String& msg)
+{
+  PANIC_DEBUG();
+  Serial.println( toString( level, msg ) );
+}
+
+byte CoreConsole::logLevel(void) 
+{
+  return CoreSettings::getInt("log.serialLoglevel");
+}
 
 void CoreConsole::loop(void)
 {
@@ -33,10 +41,8 @@ void CoreConsole::loop(void)
     PANIC_DEBUG();
     byte charIn = Serial.read();
     if (isprint(charIn))
-    {
       if (bufferNb < bufferMax) // add char to string if it still fits
         buffer[bufferNb++] = charIn;
-    }
 
     // If a newline is found
     if ((charIn == '\r') || (charIn == '\n'))
@@ -44,15 +50,30 @@ void CoreConsole::loop(void)
       // If buffer is not empty
       if (bufferNb)
       {
+        buffer[bufferNb] = '\0';
 #ifndef LOG_LEVEL_DEBUG_EVEN_MORE
         Serial.print("serialBuffer=");
         Serial.println(buffer);
 #endif
-        buffer[bufferNb] = '\0';
         String res, command = buffer;
-        coreCommand.execute( res, command );
+        CoreCommands::execute( res, command );
+
         // Display result to console
-        Serial.println(res);
+        char *msg, *line = res.begin();
+
+        // Split line in blocks and prints them (separated by \n)
+        while (*line)
+        {
+
+          msg = line;
+          while ( *line && *line != '\n' ) line++;
+          if (*line) *line++ = '\0';
+
+          String log = F("CONS :   ");
+          log += msg;
+          CoreLog::addLog(LOG_LEVEL_INFO, log);
+        }
+
         bufferNb = 0;
       }
     }

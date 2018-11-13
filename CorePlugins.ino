@@ -1,103 +1,90 @@
 #include "CorePlugins.h"
 
-std::array<CorePlugins*, pluginsMax> CorePlugins::plugins;
-uint CorePlugins::pluginNb = 0;
+//std::vector<CorePlugins*> CorePlugins::pluginList;
+uint CorePlugins::_pluginsNb = 0;
 
-CorePlugins::CorePlugins(String pluginName, String pluginDesc)
+CorePlugins::CorePlugins(void) : CoreBase("CorePlugin")
 {
-  //#ifdef LOG_LEVEL_PANIC
-    Serial.println(__PRETTY_FUNCTION__);
-  //#endif
+  PANIC_DEBUG();
+
+  setPriority( priorityPlugin );
   
-  registerPlugin( pluginName, pluginDesc );
+  _saved = false;
+}
+
+CorePlugins::CorePlugins(const char* name, const char* desc) : CoreBase("CoreDevice")
+{
+  PANIC_DEBUG();
+
+  setPriority( priorityDevice );
+
+  this->_pluginName = name;
+  this->_pluginDesc = desc;
+  this->_pluginNumber = _pluginsNb++;
+
+  addFlags( flagPlugin );
 };
-
-void CorePlugins::registerPlugin( String &pluginName, String &pluginDesc )
-{
-  _pluginName = pluginName;
-  _pluginDesc = pluginDesc;
-  _pluginNumber = pluginNb;
-  plugins[pluginNb++]=this;
-}
-
-void CorePlugins::loopFast(void)
-{
-#ifdef LOG_LEVEL_PANIC
-//  Serial.println(__PRETTY_FUNCTION__);
-#endif
-}
-
-void CorePlugins::loopMedium(void)
-{
-#ifdef LOG_LEVEL_PANIC
-//  Serial.println(__PRETTY_FUNCTION__);
-#endif
-}
-
-void CorePlugins::loopSlow(void)
-{
-#ifdef LOG_LEVEL_PANIC
-  Serial.println(__PRETTY_FUNCTION__);
-#endif
-}
 
 void CorePlugins::setup(void)
 {
-#ifdef LOG_LEVEL_PANIC
-  Serial.println(__PRETTY_FUNCTION__);
-#endif
+  PANIC_DEBUG();
+
 #ifdef LOG_LEVEL_DEBUG
    String log =  "PLGS : Initialization";
-   CoreLog::add(LOG_LEVEL_DEBUG, log);
+   CoreLog::addLog(LOG_LEVEL_DEBUG, log);
 #endif
 
    coreHttp.addUrl( "/plugins", CorePlugins::listWeb );
-   coreCommand.addCommand("plugins", CorePlugins::listCommand, "List plugins");
+   CoreCommands::registerCommand("plugins", CorePlugins::listCommand, "List plugins");
+}
+
+void CorePlugins::loop(void)
+{
+//  PANIC_DEBUG();
 }
 
 CorePlugins* CorePlugins::factory() 
 {
-#ifdef LOG_LEVEL_PANIC
-  Serial.println(__PRETTY_FUNCTION__);
-#endif
+  PANIC_DEBUG();
+
   return NULL; 
 };
 
 void CorePlugins::listCommand(String &res, char **)
 {
-#ifdef LOG_LEVEL_PANIC
-  Serial.println(__PRETTY_FUNCTION__);
-#endif
+  PANIC_DEBUG();
+
   String log;
-  log = corePlugins.size();
+  log = _pluginsNb;
   log += F(" plugins : ");
-  CoreLog::add(LOG_LEVEL_INFO, log);
+  CoreLog::addLog(LOG_LEVEL_INFO, log);
 
   res += log;
   res += '\n';
 
-  for (CorePlugins* plugin : corePlugins.plugins)
-  {
-    log = F("  ");
-    log += plugin->toString();
-    log += '(';
-    log += plugin->pluginNumber();
-    log += ')';
-    CoreLog::add(LOG_LEVEL_INFO, log);
-
-    res += log;
-    res += '\n';
-  }
+  for ( CoreBase* base : list )
+    if (base->flags() & flagPlugin)
+    {
+      CorePlugins *plugin = reinterpret_cast<CorePlugins*>(base);
+      log = F("  ");
+      log += plugin->toString();
+      log += '(';
+      log += plugin->pluginNumber();
+      log += ')';
+      CoreLog::addLog(LOG_LEVEL_INFO, log);
+  
+      res += log;
+      res += '\n';
+    }
 }
 
 void CorePlugins::listWeb(void)
 {
-#ifdef LOG_LEVEL_PANIC
-  Serial.println(__PRETTY_FUNCTION__);
-#endif
+  PANIC_DEBUG();
+
 #ifdef LOG_LEVEL_DEBUG
   String log = F("HTTP : GET /plugins");
-  CoreLog::add(LOG_LEVEL_DEBUG, log);
+  CoreLog::addLog(LOG_LEVEL_DEBUG, log);
 #endif
 
   if (!coreHttp.isLoggedIn())
@@ -113,8 +100,12 @@ void CorePlugins::listWeb(void)
   line = F("Plugin list");
   coreHttp.tableHeader(reply, line);
 
-  for (CorePlugins* plugin : plugins)
-    coreHttp.tableLine(reply, plugin->pluginName(), plugin->pluginDesc());
+  for ( CoreBase* base : list )
+    if (base->flags() & flagPlugin)
+    {
+      CorePlugins* plugin = reinterpret_cast<CorePlugins*>(base);
+      coreHttp.tableLine(reply, plugin->pluginName(), plugin->pluginDesc());
+    }
 
   reply += F("</table>");
   coreHttp.pageFooter(reply);
@@ -124,18 +115,16 @@ void CorePlugins::listWeb(void)
 
 void CorePlugins::webMenu(String& html, int activeMenu)
 {
-#ifdef LOG_LEVEL_PANIC
-  Serial.println(__PRETTY_FUNCTION__);
-#endif
+  PANIC_DEBUG();
+
   // Non utilisé pour le moment.
   coreHttp.menuItem( html, "plugins",  "Plugins",     activeMenu);
 }
 
 void CorePlugins::webForm(String& html)
 {
-#ifdef LOG_LEVEL_PANIC
-  Serial.println(__PRETTY_FUNCTION__);
-#endif
+  PANIC_DEBUG();
+
   String line, form;
 
   form = "";
@@ -150,12 +139,12 @@ void CorePlugins::webForm(String& html)
 
 void CorePlugins::webSubmit( void )
 {
-#ifdef LOG_LEVEL_PANIC
-  Serial.println(__PRETTY_FUNCTION__);
-#endif
+  PANIC_DEBUG();
+
   _saved = WebServer.arg(F("save"));
   _deviceTopic = WebServer.arg(F("topic"));
   _deviceComment = WebServer.arg(F("comment"));
 }
 
-CorePlugins corePlugins;
+CorePlugins corePlugin;
+

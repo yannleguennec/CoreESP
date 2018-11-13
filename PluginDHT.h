@@ -12,19 +12,16 @@ private:
   int  _degree;
  
 public:
-  PluginDHT(void): __super() {};
-  PluginDHT(String pluginName, String pluginDesc) : __super(pluginName, pluginDesc) {};
-  
+  PluginDHT(const char* name, const char* desc) : CorePlugins(name, desc) {};  
   virtual CorePlugins* factory(void);
+
   virtual void setup(void);
+  virtual void loop(void);
 
   virtual String toString(void) { return __super::toString() + " (Degrés " + _degree + ")"; };
 
   virtual void webForm(String& html);
   virtual void webSubmit( void );
-
-  virtual void loopFast(void);     // to get switch position
-  virtual void loopMedium(void);   // to send infos
 };
 
 #endif

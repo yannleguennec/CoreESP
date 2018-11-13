@@ -1,12 +1,13 @@
 #ifndef __CorePlugin__
 #define __CorePlugin__
 
-#include "Array.h"
-#define pluginsMax 20
+#include <vector>
 
-class CorePlugins
+class CorePlugins : public CoreBase
 {
 protected:
+  static size_t _pluginsNb;
+
   bool _saved;
   
   // Infos du plugin
@@ -15,23 +16,22 @@ protected:
   String _pluginDesc;
 
   // Infos du device
+  String _deviceName;
   String _deviceTopic;
   String _deviceComment;
   
 public:
-  static std::array<CorePlugins*, pluginsMax> plugins;
-  static size_t pluginNb;
-
-  CorePlugins(void) { _saved = false; };
-  CorePlugins(String pluginName, String pluginDesc);
+  CorePlugins(void);
+  //CorePlugins(String& pluginName, String& pluginDesc);
+  CorePlugins(const char* name, const char* desc);
+  
   virtual ~CorePlugins() {};
 
   void registerPlugin( String &pluginName, String &pluginDesc );
 
-  void loopFast(void);
-  void loopMedium(void);
-  void loopSlow(void);
-
+  virtual void setup(void);
+  virtual void loop(void);
+  
   virtual CorePlugins* factory(void);
   
   void pluginNumber( size_t pluginNumber ) { _pluginNumber = pluginNumber; };
@@ -49,23 +49,22 @@ public:
   virtual void webForm(String& html);
   virtual void webSubmit( void );
 
-  void deviceTopic( String& deviceTopic ) { _deviceTopic = deviceTopic; };
+  void deviceName( String& name ) { _deviceName = name; };
+  String& deviceName( void ) { return _deviceName; };
+
+  void deviceTopic( String& topic ) { _deviceTopic = topic; };
   String& deviceTopic( void ) { return _deviceTopic; };
   
-  void deviceComment( String& deviceComment ) { _deviceComment = deviceComment; };
+  void deviceComment( String& comment ) { _deviceComment = comment; };
   String& deviceComment( void ) { return _deviceComment; };
 
   bool saved(void) { return _saved; };
   void save(void) { _saved = true; };
-
-  virtual void setup(void);
   
   static void listCommand(String &, char **);
   static void listWeb( void );
 
-  size_t size(void) { return pluginNb; };
+  static size_t pluginsNb(void) { return _pluginsNb; };
 };
-
-extern CorePlugins corePlugins;
 
 #endif

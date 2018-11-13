@@ -2,31 +2,21 @@
 #define __CoreControls__
 
 #include <forward_list>
+#include "CoreBase.h"
+#include "CoreLog.h"
 
-class CoreControls;
-class CoreControls 
+class CoreControls : public CoreLog
 {
-public:
-  static std::forward_list<CoreControls*> controls;
-  static uint controlsNb;
+protected:
+  static unsigned int controlsNb;
+  bool controlActive;
   
-  String name;
-  String debug;
-
-  CoreControls(void);
+public:
+  CoreControls(String name);
   
   virtual void setup(void);
-  virtual void loop(void);
-  virtual void loopSlow(void);
-  virtual void loopMedium(void);
-  virtual void loopFast(void);
 
-  void registerControl( String name, CoreControls *control );
-  
-  static void listCommand( String &, char** );
-//  static Array<CoreControls> &list(void) { return CoreControls::controls; };
+  static void listControls( String &, char** );
 };
-
-extern CoreControls coreControls;
 
 #endif

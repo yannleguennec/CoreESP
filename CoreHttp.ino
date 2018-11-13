@@ -1,6 +1,8 @@
 #include "user_interface.h"
 
 #include "CoreHttp.h"
+
+#include "CoreSystem.h"
 #include "CoreLog.h"
 #include "CoreSettings.h"
 
@@ -17,30 +19,29 @@ byte loginTimeout = 0; // Not logged in at start
 int lineNo = 0;
 int currentMenu = 0;
 
-CoreHttp::CoreHttp(void)
+CoreHttp::CoreHttp(void) : CoreControls("Http")
 {
-  debug="DeBuG Http";
+  PANIC_DEBUG();
+  setPriority( priorityControl );
+
+  CoreSettings::registerSetting( "log.httpLoglevel",      LOG_LEVEL_INFO );
 }
 
 void CoreHttp::addUrl(String url, void (*func)(void))
 {
-#ifdef LOG_LEVEL_PANIC
-  Serial.println(__PRETTY_FUNCTION__);
-#endif
+  PANIC_DEBUG();
+
   WebServer.on( url.begin(), func );
 }
 
 void CoreHttp::setup()
 {
-#ifdef LOG_LEVEL_PANIC
-  Serial.println(__PRETTY_FUNCTION__);
-#endif
+  PANIC_DEBUG();
+
 #ifdef LOG_LEVEL_DEBUG
   String log = F("HTTP : Initialization.");
-  CoreLog::add(LOG_LEVEL_DEBUG, log);
+  CoreLog::addLog(LOG_LEVEL_DEBUG, log);
 #endif
-  registerControl("Http", this);
-
   // Initialize common strings
   texthtml = F("text/html");
   ignoreValue = F("*** ignore ***");
@@ -89,16 +90,29 @@ void CoreHttp::setup()
   WebServer.begin();
 }
 
-void CoreHttp::loop()
+void CoreHttp::log(byte level, String &msg)
 {
-  WebServer.handleClient();
+  level = level;
+  msg = msg;
 }
 
-void CoreHttp::loopMedium()
+byte CoreHttp::logLevel(void) 
 {
-#ifdef LOG_LEVEL_PANIC
-  Serial.println(__PRETTY_FUNCTION__);
-#endif
+  return CoreSettings::getInt("log.httpLoglevel");
+}
+
+void CoreHttp::loop()
+{
+//  PANIC_DEBUG();
+
+  WebServer.handleClient();
+  schedule( handleLoginTimeout, 1000 );
+}
+
+void CoreHttp::handleLoginTimeout()
+{
+  PANIC_DEBUG();
+
   if (loginTimeout)
   {
     String log;
@@ -107,21 +121,20 @@ void CoreHttp::loopMedium()
 #ifndef LOG_LEVEL_DEBUG
     log = F("HTTP : LoginTimeout... ");
     log += loginTimeout;
-    CoreLog::add(LOG_LEVEL_DEBUG, log);
+    CoreLog::addLog(LOG_LEVEL_DEBUG, log);
 #endif
     if (!loginTimeout)
     {
         log = F("HTTP : Logged out.");        
-        CoreLog::add(LOG_LEVEL_INFO, log);
+        CoreLog::addLog(LOG_LEVEL_INFO, log);
     }
   }
 }
 
 void CoreHttp::pageHeader(String& html, int activeMenu)
 {
-#ifdef LOG_LEVEL_PANIC
-  Serial.println(__PRETTY_FUNCTION__);
-#endif
+  PANIC_DEBUG();
+
   html += F( "<!DOCTYPE html>"      );
   html += F( "<html>"      );
   html += F(   "<head><title>" );
@@ -177,9 +190,8 @@ void CoreHttp::pageHeader(String& html, int activeMenu)
 
 void CoreHttp::menuItem(String &html, String url, String libelle, int activeMenu)
 {
-#ifdef LOG_LEVEL_PANIC
-  Serial.println(__PRETTY_FUNCTION__);
-#endif
+  PANIC_DEBUG();
+
   html += F("<li><a href='");
   html += url;
   html += '\'';
@@ -192,17 +204,15 @@ void CoreHttp::menuItem(String &html, String url, String libelle, int activeMenu
 
 void CoreHttp::pageFooter(String& html)
 {
-#ifdef LOG_LEVEL_PANIC
-  Serial.println(__PRETTY_FUNCTION__);
-#endif
+  PANIC_DEBUG();
+
   html += F("</form></body></html>");
 }
 
 void CoreHttp::tableHeader(String &html, String section)
 {
-#ifdef LOG_LEVEL_PANIC
-  Serial.println(__PRETTY_FUNCTION__);
-#endif
+  PANIC_DEBUG();
+
   html += F("<tr><th colspan=2>");
   html += section;
   html += F("</th></tr>");
@@ -210,9 +220,8 @@ void CoreHttp::tableHeader(String &html, String section)
 
 void CoreHttp::tableLine(String &html, String title, String value)
 {
-#ifdef LOG_LEVEL_PANIC
-  Serial.println(__PRETTY_FUNCTION__);
-#endif
+  PANIC_DEBUG();
+
   html += F("<tr");
   if ((lineNo++) % 2) html += F(" class='odd'");
   html += F("><td");
@@ -233,9 +242,8 @@ void CoreHttp::tableLine(String &html, String title, String value)
 
 void CoreHttp::select(String &html, String name, String js)
 {
-#ifdef LOG_LEVEL_PANIC
-  Serial.println(__PRETTY_FUNCTION__);
-#endif
+  PANIC_DEBUG();
+
   if (name!="")
   {
     html += F("<select id=\"");
@@ -257,9 +265,8 @@ void CoreHttp::select(String &html, String name, String js)
 
 void CoreHttp::option(String &html, String name, int value, bool selected)
 {
-#ifdef LOG_LEVEL_PANIC
-  Serial.println(__PRETTY_FUNCTION__);
-#endif
+  PANIC_DEBUG();
+
   html += F("<option value='");
   html += value;
   html += '\'';
@@ -272,9 +279,8 @@ void CoreHttp::option(String &html, String name, int value, bool selected)
 
 void CoreHttp::input(String &html, String field, String value, String type)
 {
-#ifdef LOG_LEVEL_PANIC
-  Serial.println(__PRETTY_FUNCTION__);
-#endif
+  PANIC_DEBUG();
+
   html += F("<input type='");
   html += type;
   html += F("' name='");
@@ -286,9 +292,8 @@ void CoreHttp::input(String &html, String field, String value, String type)
 
 void CoreHttp::button(String &html, String value, String url)
 {
-#ifdef LOG_LEVEL_PANIC
-  Serial.println(__PRETTY_FUNCTION__);
-#endif
+  PANIC_DEBUG();
+
   html += F("<button");
   if (url != "")
   {
@@ -307,15 +312,14 @@ void CoreHttp::button(String &html, String value, String url)
 //********************************************************************************
 bool CoreHttp::isLoggedIn(void)
 {
-#ifdef LOG_LEVEL_PANIC
-  Serial.println(__PRETTY_FUNCTION__);
-#endif
+  PANIC_DEBUG();
+
   // if no password set, we're loggeg in, that's bad so we print an error...
   if (CoreSettings::getChar("system.pass")[0] == '\0')
   {
 #ifdef LOG_LEVEL_ERROR
     String log = F("HTTP : No password set, logged in...");
-    CoreLog::add(LOG_LEVEL_ERROR, log);
+    CoreLog::addLog(LOG_LEVEL_ERROR, log);
 #endif
     return true;
   }
@@ -325,7 +329,7 @@ bool CoreHttp::isLoggedIn(void)
   {
 #ifdef LOG_LEVEL_DEBUG
     String log = F("HTTP : Already logged in...");
-    CoreLog::add(LOG_LEVEL_DEBUG, log);
+    CoreLog::addLog(LOG_LEVEL_DEBUG, log);
 #endif
     // Reset login timeout
     loginTimeout = HTTP_LOGIN_TIMEOUT;
@@ -337,7 +341,7 @@ bool CoreHttp::isLoggedIn(void)
   {
 #ifdef LOG_LEVEL_DEBUG
     String log = F("HTTP : Logging in...");
-    CoreLog::add(LOG_LEVEL_DEBUG, log);
+    CoreLog::addLog(LOG_LEVEL_DEBUG, log);
 #endif
     // Reset login timeout
     loginTimeout = HTTP_LOGIN_TIMEOUT;
@@ -362,12 +366,11 @@ bool CoreHttp::isLoggedIn(void)
 
 void CoreHttp::handleRoot(void)
 {
-#ifdef LOG_LEVEL_PANIC
-  Serial.println(__PRETTY_FUNCTION__);
-#endif
+  PANIC_DEBUG();
+
 #ifdef LOG_LEVEL_DEBUG
   String log = F("HTTP : GET /");
-  CoreLog::add(LOG_LEVEL_DEBUG, log);
+  CoreLog::addLog(LOG_LEVEL_DEBUG, log);
 #endif
 
   // Redirect to setup, if no SSID set
@@ -500,15 +503,13 @@ void CoreHttp::handleRoot(void)
 
 void CoreHttp::handleConfigSave(String &res)
 {
-#ifdef LOG_LEVEL_PANIC
-  Serial.println(__PRETTY_FUNCTION__);
-#endif
+  PANIC_DEBUG();
+
   String line;
 
   Serial.println("Saving configuration");
 
-  Setting *setting = CoreSettings::first();
-  while (setting)
+  for( CoreSettings *setting : CoreSettings::settings)
   {
     String val = WebServer.arg( setting->name );
     if ( (val != ignoreValue) && (val != "") )
@@ -519,25 +520,22 @@ void CoreHttp::handleConfigSave(String &res)
       line += WebServer.arg( setting->name );
       line += '\'';
 
-      //CoreLog::add(LOG_LEVEL_INFO, line);
-      coreCommand.execute( res, line );
+      //CoreLog::addLog(LOG_LEVEL_INFO, line);
+      CoreCommands::execute( res, line );
     }
-
-    setting = CoreSettings::next();
   }
   line = "save";
   res = "";
-  coreCommand.execute( res, line );
+  CoreCommands::execute( res, line );
 }
 
 void CoreHttp::handleConfig(void)
 {
-#ifdef LOG_LEVEL_PANIC
-  Serial.println(__PRETTY_FUNCTION__);
-#endif
+  PANIC_DEBUG();
+
 #ifdef LOG_LEVEL_DEBUG
   String log = F("HTTP : GET /config");
-  CoreLog::add(LOG_LEVEL_DEBUG, log);
+  CoreLog::addLog(LOG_LEVEL_DEBUG, log);
 #endif
 
   if (!coreHttp.isLoggedIn())
@@ -557,8 +555,7 @@ void CoreHttp::handleConfig(void)
   char section[sectionMax + 1] = "";
   int pos;
 
-  Setting *setting = CoreSettings::first();
-  while (setting)
+  for (CoreSettings *setting : CoreSettings::settings)
   {
     // search for a point
     pos = 0;
@@ -601,8 +598,6 @@ void CoreHttp::handleConfig(void)
     line = "";
     coreHttp.input(line, setting->name, value, type);
     tableLine(html, setting->name, line);
-
-    setting = CoreSettings::next();
   }
 
   line = F("<input type='submit' name='cmd' value='save'>");
@@ -616,9 +611,8 @@ void CoreHttp::handleConfig(void)
 
 void CoreHttp::handleToolsCommands(String &res, String &line)
 {
-#ifdef LOG_LEVEL_PANIC
-  Serial.println(__PRETTY_FUNCTION__);
-#endif
+  PANIC_DEBUG();
+
   String log;
 
   for (int argNo = 1; argNo <= commandArgs; argNo++)
@@ -634,18 +628,17 @@ void CoreHttp::handleToolsCommands(String &res, String &line)
   log = F("HTTP : command='");
   log += line;
   log += '\'';
-  CoreLog::add(LOG_LEVEL_INFO, log);
-  coreCommand.execute( res, line );
+  CoreLog::addLog(LOG_LEVEL_INFO, log);
+  CoreCommands::execute( res, line );
 }
 
 void CoreHttp::handleTools(void)
 {
-#ifdef LOG_LEVEL_PANIC
-  Serial.println(__PRETTY_FUNCTION__);
-#endif
+  PANIC_DEBUG();
+
 #ifdef LOG_LEVEL_DEBUG
   String log = F("HTTP : GET /tools");
-  CoreLog::add(LOG_LEVEL_DEBUG, log);
+  CoreLog::addLog(LOG_LEVEL_DEBUG, log);
 #endif
 
   if (!coreHttp.isLoggedIn())
@@ -712,16 +705,15 @@ void CoreHttp::handleTools(void)
 
 void CoreHttp::handleLog(void)
 {
-#ifdef LOG_LEVEL_PANIC
-  Serial.println(__PRETTY_FUNCTION__);
-#endif
+  PANIC_DEBUG();
+
   if (!coreHttp.isLoggedIn())
     return;
 
   String reply, res, line = WebServer.arg("cmd");
 
   if (line.length() != 0)
-    coreCommand.execute(res, line);
+    CoreCommands::execute(res, line);
 
   pageHeader(reply, MENU_ADVANCED);
   reply += res;
@@ -731,22 +723,19 @@ void CoreHttp::handleLog(void)
   tableHeader( reply, F("System Log"));
   //--------------------------------------------------------------------------
 
-  int logLevel = CoreSettings::getInt("log.httpLoglevel");
-  Log *log = CoreLog::first();
+// int logLevel = CoreSettings::getInt("log.httpLoglevel");
+
   line = "";
-  int lineNo = 0;
-  while (log)
-  {
-    line += lineNo++;
-
-    if (log->logLevel <= logLevel)
-    {
-      CoreLog::display(line, log );
-
-    }
-    line += F("<br>");
-    log = CoreLog::next();
-  }
+//  int lineNo = 0;
+//  for( String log : logs )
+//  {
+//    line += lineNo++;
+//
+//    if (log.logLevel <= logLevel)
+//      log.display( line );
+//
+//    line += F("<br>");
+//  }
   tableLine(reply, (char*)NULL, line);
 
   reply += F("</table>");

@@ -3,30 +3,25 @@
 
 #include "CorePlugins.h"
 
-class PluginSwitch : public CorePlugins
+class PluginSwitch : public PluginButton
 {
-private:
-  typedef CorePlugins __super;
-  
-  int  _type;
-  int  _pin;
-  bool _inverse;
-  
-  int  _state;
-public:
-  PluginSwitch(void): __super() {};  
-  PluginSwitch(String pluginName, String pluginDesc) : __super(pluginName, pluginDesc) {};
-  
-  virtual CorePlugins* factory(void);
-  virtual void setup();
+  typedef PluginButton __super;
 
-  virtual String toString(void) { return __super::toString() + " (Pin " + _pin + ")"; };
+protected:
+  int switchState;
+  int switchStates;
+  
+public:
+  PluginSwitch(const char* name, const char* desc):PluginButton(name,desc){};
+  virtual CorePlugins* factory(void);
+
+  virtual void setup();
+  virtual void loop();
+
+  virtual String toString(void) { return __super::toString() + " (Pin " + buttonPin + ")"; };
 
   virtual void webForm(String& html);
   virtual void webSubmit( void );
-  
-  virtual void loopFast();     // to get switch position
-  virtual void loopMedium();   // to send infos
 };
 
 #endif

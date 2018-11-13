@@ -4,36 +4,37 @@
 #include "CoreControls.h"
 #include <PubSubClient.h>
 
-class Abonnements
+class CoreMqttCallback
 {
 public:
   String topic;
-  MQTT_CALLBACK_SIGNATURE;
+  MQTT_CALLBACK_SIGNATURE; // this defines a callback attribute with right prototype (see PibSubClient.h)
   
-  Abonnements( String& topic, MQTT_CALLBACK_SIGNATURE );
+  CoreMqttCallback( String& topic, MQTT_CALLBACK_SIGNATURE );
 };
 
 class CoreMqtt : protected CoreControls
 {  
-  static std::forward_list<Abonnements> abonnements;
-
-protected:
   typedef CoreControls __super;
-  PubSubClient client;
-
-  static void callback(char* topic, byte* payload, unsigned int length);
-  void reconnect( void );
 
 public:
   CoreMqtt(void);
   
-  void setup(void);
-  void loop(void);
-  void loopMedium(void);
-  
-  void registerCallback( String topic, MQTT_CALLBACK_SIGNATURE );
-};
+  virtual void setup(void);
+  virtual void loop(void);
 
-extern CoreMqtt coreMqtt;
+  virtual void log(String&);
+
+  void subscribe( String topic, MQTT_CALLBACK_SIGNATURE );
+  
+protected:
+  static std::forward_list<CoreMqttCallback*> callbacks;
+  PubSubClient client;
+
+  static void doCallback(char* topic, byte* payload, unsigned int length);
+  void handleMqtt( void );
+  void displayStatus( String& res );
+
+};
 
 #endif

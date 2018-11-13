@@ -38,38 +38,51 @@ byte wifiAPWait = 0;
 //IPAddress apIP(192, 168, 204, 1);
 //DNSServer dnsServer;
 
+CoreWifi::CoreWifi(void) : CoreBase("CoreWifi")
+{
+  PANIC_DEBUG();
+
+}
+
 void CoreWifi::setup()
 {
+  PANIC_DEBUG();
+
 #ifdef LOG_LEVEL_DEBUG
   String log = F("WIFI : Initialization.");
-  CoreLog::add(LOG_LEVEL_DEBUG, log);
+  CoreLog::addLog(LOG_LEVEL_DEBUG, log);
 #endif
 
-  coreCommand.addCommand( "ping",   CoreWifi::pingCommand, "Pings hostname or IP" );
+  CoreCommands::registerCommand( "ping",   CoreWifi::pingCommand, "Pings hostname or IP" );
 
-  coreCommand.addCommand( "wifiConnect",    CoreWifi::connectCommand,    "Connects to wifi" );
-  coreCommand.addCommand( "wifiDisconnect", CoreWifi::disconnectCommand, "Disconnects wifi" );
-  coreCommand.addCommand( "wifiAP",         CoreWifi::setAPModeCommand,  "Start AP Mode" );
-  coreCommand.addCommand( "wifiReset",      CoreWifi::resetCommand,      "Reset wifi configuration" );
-  coreCommand.addCommand( "wifiScan",       CoreWifi::scanAPCommand,     "Scan AP around" );
+  CoreCommands::registerCommand( "wifiConnect",    CoreWifi::connectCommand,    "Connects to wifi" );
+  CoreCommands::registerCommand( "wifiDisconnect", CoreWifi::disconnectCommand, "Disconnects wifi" );
+  CoreCommands::registerCommand( "wifiAP",         CoreWifi::setAPModeCommand,  "Start AP Mode" );
+  CoreCommands::registerCommand( "wifiReset",      CoreWifi::resetCommand,      "Reset wifi configuration" );
+  CoreCommands::registerCommand( "wifiScan",       CoreWifi::scanAPCommand,     "Scan AP around" );
 
-  CoreSettings::add( "wifi.ssid",          SET_TYPE_STRING,  DEFAULT_SSID );
-  CoreSettings::add( "wifi.pass",          SET_TYPE_STRING,  DEFAULT_PWD  );
+  CoreSettings::registerSetting( "wifi.ssid",          DEFAULT_SSID );
+  CoreSettings::registerSetting( "wifi.pass",          DEFAULT_PWD  );
 
-  CoreSettings::add( "wifi.ap.ssid",       SET_TYPE_STRING,  DEFAULT_AP_SSID );
-  CoreSettings::add( "wifi.ap.pass",       SET_TYPE_STRING,  DEFAULT_AP_PWD  );
+  CoreSettings::registerSetting( "wifi.ap.ssid",       DEFAULT_AP_SSID );
+  CoreSettings::registerSetting( "wifi.ap.pass",       DEFAULT_AP_PWD  );
 
-  CoreSettings::add( "network.ip",         SET_TYPE_STRING,  DEFAULT_IP      );
-  CoreSettings::add( "network.mask",       SET_TYPE_STRING,  DEFAULT_NETMASK );
-  CoreSettings::add( "network.gateway",    SET_TYPE_STRING,  DEFAULT_GATEWAY );
-  CoreSettings::add( "network.dns",        SET_TYPE_STRING,  DEFAULT_DNS     );
+  CoreSettings::registerSetting( "network.ip",         DEFAULT_IP      );
+  CoreSettings::registerSetting( "network.mask",       DEFAULT_NETMASK );
+  CoreSettings::registerSetting( "network.gateway",    DEFAULT_GATEWAY );
+  CoreSettings::registerSetting( "network.dns",        DEFAULT_DNS     );
 
-  CoreSettings::add( "network.ap.ip",      SET_TYPE_STRING,  DEFAULT_AP_IP      );
-  CoreSettings::add( "network.ap.mask",    SET_TYPE_STRING,  DEFAULT_AP_NETMASK );
-  CoreSettings::add( "network.ap.gateway", SET_TYPE_STRING,  DEFAULT_AP_GATEWAY );
+  CoreSettings::registerSetting( "network.ap.ip",      DEFAULT_AP_IP      );
+  CoreSettings::registerSetting( "network.ap.mask",    DEFAULT_AP_NETMASK );
+  CoreSettings::registerSetting( "network.ap.gateway", DEFAULT_AP_GATEWAY );
 
   wifiWait = WIFI_WAIT_NONE;
   wifiState = WIFI_STATE_CONFIGURE;
+}
+
+void CoreWifi::loop(void)
+{
+  schedule(handleWifi, 1000);
 }
 
 //********************************************************************************
@@ -77,6 +90,8 @@ void CoreWifi::setup()
 //********************************************************************************
 void CoreWifi::displayState()
 {
+  PANIC_DEBUG();
+
 #ifdef LOG_LEVEL_DEBUG_EVEN_MORE
   String log = F("WIFI : State ");
   switch (wifiState)
@@ -118,7 +133,7 @@ void CoreWifi::displayState()
   log += F(" (");
   log += wifiState;
   log += ')';
-  CoreLog::add(LOG_LEVEL_DEBUG_EVEN_MORE, log);
+  CoreLog::addLog(LOG_LEVEL_DEBUG_EVEN_MORE, log);
 #endif
 }
 
@@ -127,6 +142,8 @@ void CoreWifi::displayState()
 //********************************************************************************
 void CoreWifi::displayStatus()
 {
+  PANIC_DEBUG();
+
 #ifdef LOG_LEVEL_DEBUG_EVEN_MORE
   String log = F("WIFI : Status ");
   switch (WiFi.status())
@@ -152,15 +169,17 @@ void CoreWifi::displayStatus()
   log += '(';
   log += WiFi.status();
   log += ')';
-  CoreLog::add(LOG_LEVEL_DEBUG_EVEN_MORE, log);
+  CoreLog::addLog(LOG_LEVEL_DEBUG_EVEN_MORE, log);
 #endif
 }
 
 //********************************************************************************
 // Handle WiFi automaton
 //********************************************************************************
-void CoreWifi::loopMedium()
+void CoreWifi::handleWifi()
 {
+  PANIC_DEBUG();
+
   String res;
 
   displayState();
@@ -204,7 +223,7 @@ void CoreWifi::loopMedium()
       // This should never happen !!!
       String log = F("WIFI : Bad state:");
       log += wifiState;
-      CoreLog::add(LOG_LEVEL_ERROR, log);
+      CoreLog::addLog(LOG_LEVEL_ERROR, log);
       wifiState = WIFI_STATE_CONFIGURE;
   }
 }
@@ -214,6 +233,8 @@ void CoreWifi::loopMedium()
 //********************************************************************************
 void CoreWifi::configure()
 {
+  PANIC_DEBUG();
+
   String log;
 
   WiFi.persistent(false); // Do not use SDK storage of SSID/WPA parameters
@@ -224,7 +245,7 @@ void CoreWifi::configure()
   //  wifiRetries = 0;
 #ifdef LOG_LEVEL_DEBUG
   log = F("WIFI : Configured.");
-  CoreLog::add(LOG_LEVEL_DEBUG, log);
+  CoreLog::addLog(LOG_LEVEL_DEBUG, log);
 #endif
 
   wifiWait = WIFI_WAIT_NONE;
@@ -236,6 +257,8 @@ void CoreWifi::configure()
 //********************************************************************************
 void CoreWifi::configHostname()
 {
+  PANIC_DEBUG();
+
   String *hostname = CoreSettings::getString( "system.name" );
 
   // Replace spaces by '-' to get hostName
@@ -244,8 +267,8 @@ void CoreWifi::configHostname()
 
 #ifdef LOG_LEVEL_DEBUG
   String log = F("WIFI : Hostname is ");
-  log += hostname->begin();
-  CoreLog::add(LOG_LEVEL_DEBUG, log);
+  log += *hostname;
+  CoreLog::addLog(LOG_LEVEL_DEBUG, log);
 #endif
 
   wifi_station_set_hostname(hostname->begin());
@@ -256,6 +279,8 @@ void CoreWifi::configHostname()
 //********************************************************************************
 void CoreWifi::configAP()
 {
+  PANIC_DEBUG();
+
   String log;
   // create and store unique AP SSID/PW to prevent ESP from starting AP mode with default SSID and No password!
   //sprintf_P(settings.wifiAPSSID, PSTR("%s%u"), DEFAULT_AP_SSID, settings.deviceUnit);
@@ -267,8 +292,8 @@ void CoreWifi::configAP()
 
 #ifdef LOG_LEVEL_DEBUG
   log = F("WIFI : Configuring AP, SSID:");
-  log += ssid->begin();
-  CoreLog::add(LOG_LEVEL_DEBUG, log);
+  log += *ssid;
+  CoreLog::addLog(LOG_LEVEL_DEBUG, log);
 #endif
 
   //WiFi.softAPConfig (settings.ipAP, settings.gatewayAP, settings.netmaskAP );
@@ -276,7 +301,7 @@ void CoreWifi::configAP()
   if (!WiFi.softAP(ssid->begin(), pass->begin()))
   {
     log = F("WIFI : SoftAp not configured!");
-    CoreLog::add(LOG_LEVEL_ERROR, log);
+    CoreLog::addLog(LOG_LEVEL_ERROR, log);
   }
 }
 
@@ -285,11 +310,15 @@ void CoreWifi::configAP()
 //********************************************************************************
 void CoreWifi::setAPModeCommand(String &, char **)
 {
+  PANIC_DEBUG();
+
   CoreWifi::setAPMode();
 }
 
 void CoreWifi::setAPMode(void)
 {
+  PANIC_DEBUG();
+
   String log;
 
   if (wifiWait)
@@ -297,7 +326,7 @@ void CoreWifi::setAPMode(void)
 #ifdef LOG_LEVEL_DEBUG_MORE
     log = F("WIFI : Wait in AP mode... ");
     log += wifiWait;
-    CoreLog::add(LOG_LEVEL_DEBUG_MORE, log);
+    CoreLog::addLog(LOG_LEVEL_DEBUG_MORE, log);
 #endif
     wifiWait--;
     return;
@@ -311,7 +340,7 @@ void CoreWifi::setAPMode(void)
 
   log += F(", ");
   log += CoreSystem::IPMaskGW(SOFTAP_IF, true, false);
-  CoreLog::add(LOG_LEVEL_INFO, log);
+  CoreLog::addLog(LOG_LEVEL_INFO, log);
 
   if ( !(WiFi.getMode() & WIFI_AP) )
     WiFi.mode(WIFI_AP_STA);
@@ -327,13 +356,15 @@ void CoreWifi::setAPMode(void)
 //********************************************************************************
 void CoreWifi::waitAPMode()
 {
+  PANIC_DEBUG();
+
   String log;
   if (wifiWait)
   {
 #ifdef LOG_LEVEL_DEBUG_MORE
     log = F("WIFI : Wait in AP mode... ");
     log += wifiWait;
-    CoreLog::add(LOG_LEVEL_DEBUG_MORE, log);
+    CoreLog::addLog(LOG_LEVEL_DEBUG_MORE, log);
 #endif
     wifiWait--;
     return;
@@ -341,7 +372,7 @@ void CoreWifi::waitAPMode()
 
   log = F("WIFI : AP Mode, ");
   log += CoreSystem::IPMaskGW(SOFTAP_IF, true, false);
-  CoreLog::add(LOG_LEVEL_INFO, log);
+  CoreLog::addLog(LOG_LEVEL_INFO, log);
 
   wifiWait = WIFI_WAIT_NONE;
   wifiState = WIFI_STATE_WAIT_CONNECT;
@@ -353,11 +384,15 @@ void CoreWifi::waitAPMode()
 //********************************************************************************
 void CoreWifi::connectCommand(String &, char **)
 {
+  PANIC_DEBUG();
+
   CoreWifi::connect();
 }
 
 void CoreWifi::connect(void)
 {
+  PANIC_DEBUG();
+
   String log;
 
   wifiState = WIFI_STATE_CONNECT;
@@ -368,7 +403,7 @@ void CoreWifi::connect(void)
     log = F("WIFI : Already connected. ");
     log += CoreSystem::IPMaskGW(STATION_IF, true, true);
     //    log += WiFi.localIP().toString();
-    CoreLog::add(LOG_LEVEL_ERROR, log);
+    CoreLog::addLog(LOG_LEVEL_ERROR, log);
 
     wifiWait = WIFI_WAIT_CONNECTED;
     wifiState = WIFI_STATE_CONNECTED;
@@ -380,7 +415,7 @@ void CoreWifi::connect(void)
 #ifdef LOG_LEVEL_DEBUG_MORE
     log = F("WIFI : Waiting connection... ");
     log += wifiWait;
-    CoreLog::add(LOG_LEVEL_DEBUG_MORE, log);
+    CoreLog::addLog(LOG_LEVEL_DEBUG_MORE, log);
 #endif
     wifiWait--;
     return;
@@ -390,9 +425,9 @@ void CoreWifi::connect(void)
   String *pass = CoreSettings::getString( "wifi.pass" );
 
   log = F("WIFI : Connecting to SSID '");
-  log += ssid->begin();
+  log += *ssid;
   log += '\'';
-  CoreLog::add(LOG_LEVEL_INFO, log);
+  CoreLog::addLog(LOG_LEVEL_INFO, log);
 
   // IF IPFIXED
   //  String *ip = CoreSettings::getString( "network.ip" );
@@ -426,7 +461,7 @@ void CoreWifi::connect(void)
   {
 #ifdef LOG_LEVEL_DEBUG
     log = F("WIFI : Connection impossible,");
-    CoreLog::add(LOG_LEVEL_DEBUG, log);
+    CoreLog::addLog(LOG_LEVEL_DEBUG, log);
 #endif
     wifiWait = WIFI_WAIT_NONE;
     wifiState = WIFI_STATE_APMODE;
@@ -444,13 +479,15 @@ void CoreWifi::connect(void)
 //********************************************************************************
 void CoreWifi::waitConnect()
 {
+  PANIC_DEBUG();
+
   String log;
 
   if (wifiIsConnected())
   {
     log = F("WIFI : Connected. ");
     log += CoreSystem::IPMaskGW( STATION_IF, true, true);
-    CoreLog::add(LOG_LEVEL_INFO, log);
+    CoreLog::addLog(LOG_LEVEL_INFO, log);
 
     wifiWait = WIFI_WAIT_CONNECTED;
     wifiState = WIFI_STATE_CONNECTED;
@@ -460,7 +497,7 @@ void CoreWifi::waitConnect()
   if (wifiIsNotAvailable())
   {
     log = F("WIFI : SSID not available.");
-    CoreLog::add(LOG_LEVEL_INFO, log);
+    CoreLog::addLog(LOG_LEVEL_INFO, log);
 
     WiFi.disconnect();
 
@@ -474,14 +511,14 @@ void CoreWifi::waitConnect()
 #ifdef LOG_LEVEL_DEBUG
     log = F("WIFI : Waiting connection... ");
     log += wifiWait;
-    CoreLog::add(LOG_LEVEL_DEBUG_MORE, log);
+    CoreLog::addLog(LOG_LEVEL_DEBUG_MORE, log);
 #endif
     wifiWait--;
     return;
   }
 
   log = F("WIFI : Retring connection...");
-  CoreLog::add(LOG_LEVEL_INFO, log);
+  CoreLog::addLog(LOG_LEVEL_INFO, log);
 
   WiFi.begin();
 
@@ -493,13 +530,15 @@ void CoreWifi::waitConnect()
 //********************************************************************************
 void CoreWifi::connected()
 {
+  PANIC_DEBUG();
+
   String log;
   if (wifiWait)
   {
 #ifdef LOG_LEVEL_DEBUG_MORE
     log = F("WIFI : Waiting for connection checking... ");
     log += wifiWait;
-    CoreLog::add(LOG_LEVEL_DEBUG_MORE, log);
+    CoreLog::addLog(LOG_LEVEL_DEBUG_MORE, log);
 #endif
     wifiWait--;
     return;
@@ -509,7 +548,7 @@ void CoreWifi::connected()
   {
     log = F("WIFI : Not connected... ");
     log += WiFi.status();
-    CoreLog::add(LOG_LEVEL_INFO, log);
+    CoreLog::addLog(LOG_LEVEL_INFO, log);
 
     // Try to reconnect
     wifiWait = WIFI_WAIT_CONNECT;
@@ -523,14 +562,14 @@ void CoreWifi::connected()
     {
 #ifdef LOG_LEVEL_DEBUG_MORE
       log = F("WIFI : Wait to inactive AP");
-      CoreLog::add(LOG_LEVEL_DEBUG_MORE, log);
+      CoreLog::addLog(LOG_LEVEL_DEBUG_MORE, log);
 #endif
       wifiAPWait--;
     }
     else
     {
       log = F("WIFI : inactivating AP Mode");
-      CoreLog::add(LOG_LEVEL_INFO, log);
+      CoreLog::addLog(LOG_LEVEL_INFO, log);
 
       WiFi.softAPdisconnect( false );
       WiFi.mode(WIFI_STA);
@@ -540,13 +579,13 @@ void CoreWifi::connected()
   {
 #ifdef LOG_LEVEL_DEBUG_MORE
     log = F("WIFI : AP Mode is inactive");
-    CoreLog::add(LOG_LEVEL_DEBUG_MORE, log);
+    CoreLog::addLog(LOG_LEVEL_DEBUG_MORE, log);
 #endif
   }
 
 #ifdef LOG_LEVEL_DEBUG_MORE
   log = F("WIFI : Connection checked... ");
-  CoreLog::add(LOG_LEVEL_DEBUG_MORE, log);
+  CoreLog::addLog(LOG_LEVEL_DEBUG_MORE, log);
   displayStatus();
 #endif
   wifiWait = WIFI_WAIT_CONNECTED;
@@ -558,11 +597,15 @@ void CoreWifi::connected()
 //********************************************************************************
 void CoreWifi::disconnectCommand(String &, char**)
 {
+  PANIC_DEBUG();
+
   CoreWifi::disconnect();
 }
 
 void CoreWifi::disconnect(void)
 {
+  PANIC_DEBUG();
+
   String log;
 
   wifiState = WIFI_STATE_DISCONNECT;
@@ -571,14 +614,14 @@ void CoreWifi::disconnect(void)
   {
     // This should never happen !!!
     log = F("WIFI : Already disconnected.");
-    CoreLog::add(LOG_LEVEL_ERROR, log);
+    CoreLog::addLog(LOG_LEVEL_ERROR, log);
     wifiWait = WIFI_WAIT_NONE;
     wifiState = WIFI_STATE_DISCONNECTED;
     return;
   }
 
   log = F("WIFI : Disconnecting...");
-  CoreLog::add(LOG_LEVEL_INFO, log);
+  CoreLog::addLog(LOG_LEVEL_INFO, log);
 
   //  WiFi.disconnect(); // This scraps the configuration and sets wifi idle
   wifi_station_disconnect(); // we just want to disconnect
@@ -595,12 +638,14 @@ void CoreWifi::disconnect(void)
 //********************************************************************************
 void CoreWifi::waitDisconnect()
 {
+  PANIC_DEBUG();
+
   String log;
 
   if (wifiIsDisconnected())
   {
     log = F("WIFI : Disconnected.");
-    CoreLog::add(LOG_LEVEL_INFO, log);
+    CoreLog::addLog(LOG_LEVEL_INFO, log);
     wifiWait = WIFI_WAIT_NONE;
     wifiState = WIFI_STATE_DISCONNECTED;
     return;
@@ -609,7 +654,7 @@ void CoreWifi::waitDisconnect()
   if (wifiIsInactive())
   {
     log = F("WIFI : Inactive.");
-    CoreLog::add(LOG_LEVEL_INFO, log);
+    CoreLog::addLog(LOG_LEVEL_INFO, log);
     wifiWait = WIFI_WAIT_NONE;
     wifiState = WIFI_STATE_DISCONNECTED;
     return;
@@ -641,7 +686,7 @@ void CoreWifi::waitDisconnect()
 #ifdef LOG_LEVEL_DEBUG_MORE
     log = F("WIFI : Waiting disconnection... ");
     log += wifiWait;
-    CoreLog::add(LOG_LEVEL_DEBUG_MORE, log);
+    CoreLog::addLog(LOG_LEVEL_DEBUG_MORE, log);
 #endif
     wifiWait--;
     return;
@@ -655,8 +700,10 @@ void CoreWifi::waitDisconnect()
 //********************************************************************************
 void CoreWifi::resetCommand(String &, char**)
 {
+  PANIC_DEBUG();
+
   String log = F("WIFI : Reset...");
-  CoreLog::add(LOG_LEVEL_INFO, log);
+  CoreLog::addLog(LOG_LEVEL_INFO, log);
   WiFi.persistent(true);  // Use SDK storage of SSID/WPA parameters
   WiFi.disconnect();      // this will store empty ssid/wpa into sdk storage
   WiFi.persistent(false); // Do not use SDK storage of SSID/WPA parameters
@@ -665,6 +712,8 @@ void CoreWifi::resetCommand(String &, char**)
 
 void CoreWifi::pingCommand(String &res, char **block)
 {
+  PANIC_DEBUG();
+
   IPAddress ip;
   bool ret;
 
@@ -688,12 +737,14 @@ void CoreWifi::pingCommand(String &res, char **block)
 
     String log = F("NET  : ");
     log += res;
-    CoreLog::add(LOG_LEVEL_INFO, log);
+    CoreLog::addLog(LOG_LEVEL_INFO, log);
   }
 }
 
 void CoreWifi::scanAPCommand(String &res, char **)
 {
+  PANIC_DEBUG();
+
   // Scan for wifi AP around
   int n = WiFi.scanNetworks(true /* Async */, true /* showHidden */);
 
@@ -743,6 +794,8 @@ void CoreWifi::scanAPCommand(String &res, char **)
       res += "\n";
     }
   }
-  CoreLog::add(LOG_LEVEL_INFO, res);
+  CoreLog::addLog(LOG_LEVEL_INFO, res);
 }
+
+CoreWifi coreWifi;
 

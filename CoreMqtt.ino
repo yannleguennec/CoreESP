@@ -1,51 +1,109 @@
 #include "CoreMqtt.h"
+#include "CoreWifi.h"
 #include "myIPAddress.h"
 
-#include <WiFiClient.h>
-WiFiClient ethClient;
-//Client ethClient;
+std::forward_list<CoreMqttCallback*> CoreMqtt::callbacks;
 
-std::forward_list<Abonnements> CoreMqtt::abonnements;
-
-CoreMqtt::CoreMqtt(void) : client(ethClient)
-{
-
-}
-
-Abonnements::Abonnements( String& topic, MQTT_CALLBACK_SIGNATURE)
+CoreMqttCallback::CoreMqttCallback( String& topic, MQTT_CALLBACK_SIGNATURE)
 {
   this->topic = topic;
   this->callback = callback;
 }
 
-void CoreMqtt::registerCallback( String topic, MQTT_CALLBACK_SIGNATURE )
+// ---------------------------------------------------------------------------------------
+
+//#include <WiFiClient.h>
+//WiFiClient ethClient;
+
+CoreMqtt::CoreMqtt(void) : CoreControls("Mqtt")
 {
+  PANIC_DEBUG();
+  
+  addFlags( flagLog );
+  setPriority( priorityControl );
+
+  CoreSettings::registerSetting( "log.mqttLoglevel",      LOG_LEVEL_INFO );
+}
+
+void CoreMqtt::setup(void)
+{
+  PANIC_DEBUG();
+
+  CoreSettings::registerSetting( "mqtt.server", "192.168.1.190" );
+  CoreSettings::registerSetting( "mqtt.port",    1883 );
+  CoreSettings::registerSetting( "mqtt.user",    "Yann" );
+  CoreSettings::registerSetting( "mqtt.pass",    "Yann" );
+
+  client.setCallback(doCallback);
+}
+
+void CoreMqtt::loop(void)
+{
+//  PANIC_DEBUG();
+
+  client.loop();
+  
+  schedule( handleMqtt, 1000 );
+}
+
+void CoreMqtt::subscribe( String topic, MQTT_CALLBACK_SIGNATURE )
+{
+  PANIC_DEBUG();
+
   // le topic et le callback dans une liste.
   #ifdef LOG_LEVEL_DEBUG
    String log =  "MQTT : Register topic '";
    log += topic;
    log += '\'';
-   CoreLog::add(LOG_LEVEL_DEBUG, log);
+   CoreLog::addLog(LOG_LEVEL_DEBUG, log);
   #endif
 
   Serial.print("Abonnement à ");
   Serial.println( topic );
-  Abonnements *abo = new Abonnements(topic, callback);
-  abonnements.push_front( *abo );
+  
+  callbacks.push_front( new CoreMqttCallback(topic, callback) );
 }
 
-void CoreMqtt::callback(char* topic, byte* payload, unsigned int length)
+void CoreMqtt::doCallback(char* topic, byte* payload, unsigned int length)
 {
+  PANIC_DEBUG();
+
   // Parcours la liste des callback si le topic correspond, appelle le callback.
-  for (Abonnements& abo : abonnements)
-    if (abo.topic == topic)
-      abo.callback( topic, payload, length);
+  for (CoreMqttCallback* callback : callbacks)
+    if (callback->topic == topic)
+      callback->callback( topic, payload, length);
 }
 
-uint mqttWait = 5;
-
-void CoreMqtt::reconnect()
+void CoreMqtt::displayStatus( String& res )
 {
+  PANIC_DEBUG();
+
+  std::vector<String> clientStates = { "Timeout", "Connection lost", "Connection failed", 
+                                       "Disconnected", "Connected", "Bad protocol", "Bad client ID", 
+                                       "Unavailable", "Bad credentials", "Unauthorized" };
+
+  if ( (client.state()>=-4) && (client.state()<=5) )
+    res += clientStates[ client.state() + 4 ];
+  else
+  {
+    res += F("Unknown reason ");
+    res += client.state();
+    res += '\n';
+  }
+}
+ 
+#define MQTT_WAIT_NONE            0
+#define MQTT_WAIT_CONNECT         7
+#define MQTT_WAIT_RECONNECT       10
+uint mqttWait = MQTT_WAIT_NONE;
+
+void CoreMqtt::handleMqtt()
+{
+  PANIC_DEBUG();
+
+  if (client.connected()) return;
+  if (!wifiIsConnected()) return;
+  
   if (mqttWait)
   {
     Serial.print("Mqtt Wait...");
@@ -53,52 +111,65 @@ void CoreMqtt::reconnect()
     mqttWait--;
     return;
   }
+
+  myIPAddress server = CoreSettings::getString( "mqtt.server" );
+  int port = CoreSettings::getInt( "mqtt.port");
+
+  String *id = CoreSettings::getString("system.name");
+  String *user = CoreSettings::getString( "mqtt.user" );
+  String *pass = CoreSettings::getString( "mqtt.pass" );
   
-  // Loop until we're reconnected
-  Serial.print("Attempting MQTT connection...");
-  // Attempt to connect
-  if (client.connect("arduinoClient")) {
-    Serial.println("connected");
+  String log = F("MQTT : Connecting as ");
+  log += *id;
+  log += F(" to ");
+  log += server.toString();
+  log += F("...");
+  CoreLog::addLog(LOG_LEVEL_INFO, log);
+  
+  client.setServer( server, port );
+  
+  if (client.connect( id->begin(), user->begin(), pass->begin() )) 
+  {
+    log=F("MQTT : Connected to ");
+    log += server.toString();
+    log += '.';    
+    CoreLog::addLog(LOG_LEVEL_INFO, log);
+    
     // Once connected, publish an announcement...
-    client.publish("outTopic", "hello world");
-    // ... and resubscribe
-    for (Abonnements& abo : abonnements)
+    log = F("We are ");
+    log += *id;
+    log += F(", resistance is futile.");
+    client.publish( id->begin() , log.begin());
+
+    // ... and resubscribe all callbacks
+    for (CoreMqttCallback* callback : callbacks)
     {
-      Serial.print("Abo ");
-      Serial.println( abo.topic );
-      client.publish("abo", abo.topic.begin());
-      client.subscribe(abo.topic.begin());
-    }
-       
-  } else {
-    Serial.print("failed, rc=");
-    Serial.print(client.state());
-    Serial.println(" try again in 5 seconds");
-    // Wait 5 seconds before retrying
-    mqttWait=5;
+      Serial.print("Subscribe to ");
+      Serial.println( callback->topic );
+      client.publish("info", callback->topic.begin());
+      client.subscribe(callback->topic.begin());
+    }  
+  } else 
+  {
+    log=F("MQTT : ");
+    displayStatus( log );
+    log += '.';
+    CoreLog::addLog(LOG_LEVEL_INFO, log);
+
+    // Wait before retrying
+    mqttWait=MQTT_WAIT_RECONNECT;
   }
 }
 
-myIPAddress server("192.168.1.100");
-
-void CoreMqtt::setup(void)
+void CoreMqtt::log(String &logMsg)
 {
-  registerControl("Mqtt", this);
-
-  client.setServer(server, 1883);
-  client.setCallback(callback);
+  // Send message to server
+  Serial.println(logMsg.begin());
 }
 
-void CoreMqtt::loopMedium(void)
+byte CoreConsole::logLevel(void) 
 {
-  if (!client.connected()) {
-    reconnect();
-  }
+  return CoreSettings::getInt("log.mqttLoglevel");
 }
 
-void CoreMqtt::loop(void)
-{
-  client.loop();
-}
-
-CoreMqtt coreMqtt;
+//CoreMqtt coreMqtt;

@@ -1,46 +1,61 @@
 #include "CoreCommands.h"
+#include "CoreSystem.h"
+#include "CoreLog.h"
 
-Commands CoreCommands::command[commandMax];
-int CoreCommands::commandNb;
+std::forward_list<CoreCommands*> CoreCommands::commands;
+uint CoreCommands::commandNb = 0;
 
-CoreCommands::CoreCommands(void)
+CoreCommands::CoreCommands(void) : CoreBase("CoreCommands")
 {
-  commandNb = 0; 
+  Serial.begin( 115200 );
+  PANIC_DEBUG();
+
+  setPriority( priorityCommand );
+}
+
+CoreCommands::CoreCommands(String& cmd, CoreCommand_Callback(func), String& desc) : CoreBase("CoreCommand")
+{
+  PANIC_DEBUG();
+
+  this->cmd = cmd;
+  this->func = func;
+  this->desc = desc;
+  
+  commands.push_front(this); 
+  this->commandNb++;
 }
 
 void CoreCommands::setup(void)
 {
-#ifdef LOG_LEVEL_PANIC
-  Serial.println(__PRETTY_FUNCTION__);
-#endif
+  PANIC_DEBUG();
+
 #ifdef LOG_LEVEL_DEBUG
   String log = F("CMDS : Initialization.");
-  CoreLog::add(LOG_LEVEL_DEBUG, log);
+  CoreLog::addLog(LOG_LEVEL_DEBUG, log);
 #endif
 
-  addCommand( "help",    CoreCommands::help,    "Display help on commands (HELP <cmd>)" );
-  addCommand( "info",    CoreCommands::info,    "Display info on chip" );
-  addCommand( "restart", CoreCommands::restart, "Restarts the ESP" );
-  addCommand( "reboot",  CoreCommands::reboot,  "Reboots the ESP" );
+  registerCommand( "help",    CoreCommands::help,    "Display help on commands (HELP <cmd>)" );
+  registerCommand( "info",    CoreCommands::info,    "Display info on chip" );
+  registerCommand( "restart", CoreCommands::restart, "Restarts the ESP" );
+  registerCommand( "reboot",  CoreCommands::reboot,  "Reboots the ESP" );
   // idée : Ajouter ici une page web pour envoyer des commandes à partir du web
 };
 
-void CoreCommands::addCommand(String cmd, void(*func)(String &, char**), String desc)
+void CoreCommands::registerCommand(String cmd, CoreCommand_Callback(func), String desc)
 {
-#ifdef LOG_LEVEL_PANIC
-  Serial.println(__PRETTY_FUNCTION__);
-#endif
+  PANIC_DEBUG();
+
   String log;
 
   // Check if command already exists, if so, ignore with log.
-  for(int commandNo=0; commandNo < commandNb; commandNo++)
+  for( CoreCommands* command : commands)
   {
-    if (command[commandNo].cmd == cmd) 
+    if (command->cmd == cmd) 
     {
       log = F("CMDS : Command ");
       log += cmd;
       log += F(" already added.");
-      CoreLog::add(LOG_LEVEL_ERROR, log);
+      CoreLog::addLog(LOG_LEVEL_ERROR, log);
       return;
     }
   }
@@ -52,26 +67,23 @@ void CoreCommands::addCommand(String cmd, void(*func)(String &, char**), String 
     log = F("CMDS : Adding command '");
     log += cmd;
     log += '\'';
-    CoreLog::add(LOG_LEVEL_DEBUG_MORE, log);
+    CoreLog::addLog(LOG_LEVEL_DEBUG_MORE, log);
 #endif
 
-    command[commandNb].cmd = cmd;
-    command[commandNb].func = func;
-    command[commandNb].desc = desc;
-    commandNb++;
+    new CoreCommands(cmd, func, desc);
+    return;
   }
-  else
-  {
-    log = F("CMDS : Increase commandMax constant.");
-    CoreLog::add(LOG_LEVEL_ERROR, log);
-  }
+
+  log = F("CMDS : Increase commandMax constant.");
+  CoreLog::addLog(LOG_LEVEL_ERROR, log);
+
+  return;
 }
 
 bool CoreCommands::execute(String &res, String &str)
 {
-#ifdef LOG_LEVEL_PANIC
-  Serial.println(__PRETTY_FUNCTION__);
-#endif
+  PANIC_DEBUG();
+
   #define blockMax (commandArgs + 1)
   char *block[blockMax];
 
@@ -106,9 +118,8 @@ bool CoreCommands::execute(String &res, String &str)
 
 bool CoreCommands::split(String &str, char **block)
 {
-#ifdef LOG_LEVEL_PANIC
-  Serial.println(__PRETTY_FUNCTION__);
-#endif
+  PANIC_DEBUG();
+
   int blockNb = 0;
   char *line = str.begin();
 
@@ -155,33 +166,32 @@ bool CoreCommands::split(String &str, char **block)
 
 bool CoreCommands::run(String &res, char **block)
 {
-#ifdef LOG_LEVEL_PANIC
-  Serial.println(__PRETTY_FUNCTION__);
-#endif
+  PANIC_DEBUG();
+
   String log;
 
 #ifdef LOG_LEVEL_DEBUG
     log  = F("CMDS : search command '");
     log += commandName;
     log += "'";
-    CoreLog::add(LOG_LEVEL_DEBUG, log);
+    CoreLog::addLog(LOG_LEVEL_DEBUG, log);
 #endif
 
-  int commandNo = search( commandName );
-  if (commandNo < commandNb)
+  CoreCommands* command = search( commandName );
+  if (command)
   {
 #ifdef LOG_LEVEL_DEBUG
     log  = F("CMDS : Command ");
-    log += commandNo;
+    log += command->cmd;
     log += F(" (");
-    log += command[commandNo].cmd;
+    log += command->desc;
     log += F(") Found.");
-    CoreLog::add(LOG_LEVEL_DEBUG, log);
+    CoreLog::addLog(LOG_LEVEL_DEBUG, log);
 #endif
 
-    if (command[commandNo].func)
+    if (command->func)
     {
-      command[commandNo].func(res, block);
+      command->func(res, block);
       return true;
     }
     else
@@ -202,52 +212,24 @@ bool CoreCommands::run(String &res, char **block)
   log += res;
   log += ", try 'help'.";
 
-  CoreLog::add(LOG_LEVEL_ERROR, log);
+  CoreLog::addLog(LOG_LEVEL_ERROR, log);
   return false;
 }
 
 bool CoreCommands::notFound(String &, String &)
 {
-#ifdef LOG_LEVEL_PANIC
-  Serial.println(__PRETTY_FUNCTION__);
-#endif
+  PANIC_DEBUG();
+
   return false;
 }
 
-int CoreCommands::search(String str)
-{
-#ifdef LOG_LEVEL_PANIC
-  Serial.println(__PRETTY_FUNCTION__);
-#endif
-  int commandNo;
-  for (commandNo = 0; commandNo < commandNb; commandNo++)
-    if (str == command[ commandNo ].cmd)
-//    if (str && !strcmp( str.begin, command[commandNo].cmd))
-      break;
-  return commandNo;
-}
-
-void CoreCommands::display(int commandNo)
-{
-#ifdef LOG_LEVEL_PANIC
-  Serial.println(__PRETTY_FUNCTION__);
-#endif
-  String log = F("CMDS :    ");
-  log += command[commandNo].cmd;
-  log += F(" : ");
-  log += command[commandNo].desc;
-  CoreLog::add(LOG_LEVEL_INFO, log);
-}
-
-
 void CoreCommands::info(String &, char **)
 {
-#ifdef LOG_LEVEL_PANIC
-  Serial.println(__PRETTY_FUNCTION__);
-#endif
+  PANIC_DEBUG();
+
   String head = F("CMDS :    ");
   String log = F("CMDS : Informations :");
-  CoreLog::add(LOG_LEVEL_INFO, log);
+  CoreLog::addLog(LOG_LEVEL_INFO, log);
  
   log = head;
   log += F("loadAverage : ");
@@ -257,162 +239,176 @@ void CoreCommands::info(String &, char **)
   log += F(" / ");
   log += CoreSystem::getLoopCounterMax();
   log += F(" )");  
-  CoreLog::add(LOG_LEVEL_INFO, log);
+  CoreLog::addLog(LOG_LEVEL_INFO, log);
   
   log = head;
   log += F("getCycleCount : ");
   log += ESP.getCycleCount();
-  CoreLog::add(LOG_LEVEL_INFO, log);
+  CoreLog::addLog(LOG_LEVEL_INFO, log);
 
   log = head;
   log += F("VCC : ");
   log += ESP.getVcc();
-  CoreLog::add(LOG_LEVEL_INFO, log);
+  CoreLog::addLog(LOG_LEVEL_INFO, log);
 
   log = head;
   log += F("Free Heap : ");
   log += ESP.getFreeHeap();
-  CoreLog::add(LOG_LEVEL_INFO, log);
+  CoreLog::addLog(LOG_LEVEL_INFO, log);
 
   log = head;
   log += F("Chip ID : ");
   log += ESP.getChipId();
-  CoreLog::add(LOG_LEVEL_INFO, log);
+  CoreLog::addLog(LOG_LEVEL_INFO, log);
 
   log = head;
   log += F("SDK version : ");
   log += ESP.getSdkVersion();
-  CoreLog::add(LOG_LEVEL_INFO, log);
+  CoreLog::addLog(LOG_LEVEL_INFO, log);
 
   log = head;
   log += F("Core version : ");
   log += ESP.getCoreVersion();
-  CoreLog::add(LOG_LEVEL_INFO, log);
+  CoreLog::addLog(LOG_LEVEL_INFO, log);
 
   log = head;
   log += F("Full version : ");
   log += ESP.getFullVersion();
-  CoreLog::add(LOG_LEVEL_INFO, log);
+  CoreLog::addLog(LOG_LEVEL_INFO, log);
 
   log = head;
   log += F("Boot version : ");
   log += ESP.getBootVersion();
-  CoreLog::add(LOG_LEVEL_INFO, log);
+  CoreLog::addLog(LOG_LEVEL_INFO, log);
 
   log = head;
   log += F("Boot mode : ");
   log += ESP.getBootMode();
-  CoreLog::add(LOG_LEVEL_INFO, log);
+  CoreLog::addLog(LOG_LEVEL_INFO, log);
 
   log = head;
   log += F("Frequency : ");
   log += ESP.getCpuFreqMHz();
   log += F(" MHz");
-  CoreLog::add(LOG_LEVEL_INFO, log);
+  CoreLog::addLog(LOG_LEVEL_INFO, log);
 
   log = head;
   log += F("Flash Chip ID : ");
   log += ESP.getFlashChipId();
-  CoreLog::add(LOG_LEVEL_INFO, log);
+  CoreLog::addLog(LOG_LEVEL_INFO, log);
 
   log = head;
   log += F("Flash real size : ");
   log += ESP.getFlashChipRealSize();
-  CoreLog::add(LOG_LEVEL_INFO, log);
+  CoreLog::addLog(LOG_LEVEL_INFO, log);
 
   log = head;
   log += F("Flash set size : ");
   log += ESP.getFlashChipSize();
-  CoreLog::add(LOG_LEVEL_INFO, log);
+  CoreLog::addLog(LOG_LEVEL_INFO, log);
 
   log = head;
   log += F("Flash speed : ");
   log += ESP.getFlashChipSpeed();
-  CoreLog::add(LOG_LEVEL_INFO, log);
+  CoreLog::addLog(LOG_LEVEL_INFO, log);
 
   log = head;
   log += F("Flash mode : ");
   log += ESP.getFlashChipMode();
-  CoreLog::add(LOG_LEVEL_INFO, log);
+  CoreLog::addLog(LOG_LEVEL_INFO, log);
 
   log = head;
   log += F("Flash Chip Size by ID : ");
   log += ESP.getFlashChipSizeByChipId();
-  CoreLog::add(LOG_LEVEL_INFO, log);
+  CoreLog::addLog(LOG_LEVEL_INFO, log);
 
   log = head;
   log += F("Sketch size : ");
   log += ESP.getSketchSize();
-  CoreLog::add(LOG_LEVEL_INFO, log);
+  CoreLog::addLog(LOG_LEVEL_INFO, log);
 
   log = head;
   log += F("Sketch MD5 : ");
   log += ESP.getSketchMD5();
-  CoreLog::add(LOG_LEVEL_INFO, log);
+  CoreLog::addLog(LOG_LEVEL_INFO, log);
 
   log = head;
   log += F("Sketch Free Space : ");
   log += ESP.getFreeSketchSpace();
-  CoreLog::add(LOG_LEVEL_INFO, log);
+  CoreLog::addLog(LOG_LEVEL_INFO, log);
 
   log = head;
   log += F("Reset reason : ");
   log += ESP.getResetReason();
-  CoreLog::add(LOG_LEVEL_INFO, log);
+  CoreLog::addLog(LOG_LEVEL_INFO, log);
 
   log = head;
   log += F("Reset Info : ");
   log += ESP.getResetInfo();
-  CoreLog::add(LOG_LEVEL_INFO, log);
+  CoreLog::addLog(LOG_LEVEL_INFO, log);
 }
 
 void CoreCommands::restart(String &, char **)
 {
-#ifdef LOG_LEVEL_PANIC
-  Serial.println(__PRETTY_FUNCTION__);
-#endif
+  PANIC_DEBUG();
+
   String log;
   log = F("SYST : Restarting the device...");
-  CoreLog::add(LOG_LEVEL_INFO, log);
+  CoreLog::addLog(LOG_LEVEL_INFO, log);
 
   ESP.reset();
 }
 
 void CoreCommands::reboot(String &, char **)
 {
-#ifdef LOG_LEVEL_PANIC
-  Serial.println(__PRETTY_FUNCTION__);
-#endif
+  PANIC_DEBUG();
+
   String log;
   log = F("SYST : Rebooting the device...");
-  CoreLog::add(LOG_LEVEL_INFO, log);
+  CoreLog::addLog(LOG_LEVEL_INFO, log);
 
   ESP.reset();
 }
 
-void CoreCommands::help(String &, char **block)
+CoreCommands* CoreCommands::search(String str)
 {
-#ifdef LOG_LEVEL_PANIC
-  Serial.println(__PRETTY_FUNCTION__);
-#endif
-  int commandNo;
-  String log;
+  PANIC_DEBUG();
+
+  for (CoreCommands* command : commands)
+    if (str == command->cmd)
+      return command;
+  return NULL;
+}
+
+void CoreCommands::display(String &res, CoreCommands* command)
+{
+  PANIC_DEBUG();
+
+  res += command->cmd;
+  res += F(" : ");
+  res += command->desc;
+}
+
+void CoreCommands::help(String &res, char **block)
+{
+  PANIC_DEBUG();
 
   if (!commandArg(1))
   {
-    log = F("CMDS : Commands :");
-    CoreLog::add(LOG_LEVEL_INFO, log);
-    for (commandNo = 0; commandNo < commandNb; commandNo++)
-      coreCommand.display(commandNo);
+    res += commandNb;
+    res += F(" commands :\n");
+    for (CoreCommands* command : commands)
+    {
+      CoreCommands::display(res, command);
+      res += '\n';
+    }
   }
   else
   {
-    commandNo = coreCommand.search( commandArg(1) );
-    if (commandNo < commandNb)
-      coreCommand.display(commandNo);
+    CoreCommands* command = CoreCommands::search( commandArg(1) );
+    if (command) CoreCommands::display(res, command);
   }
 }
 
-CoreCommands coreCommand;
-
+CoreCommands coreCommands;
 

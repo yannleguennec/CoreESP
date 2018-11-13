@@ -2,6 +2,7 @@
 #define __CoreHttp__
 
 #define HTTP_LOGIN_TIMEOUT 60
+#define HTTP_LOGMAX 20
 
 #define MENU_OFF      0
 #define MENU_INFO     1
@@ -16,17 +17,19 @@
 extern ESP8266WebServer WebServer;
 extern String texthtml, save, cancel;
 
+#include "CoreHttp.h"
+#include <list>
+
 class CoreHttp : protected CoreControls
 {
-protected:
- typedef CoreControls __super;
 public:
   CoreHttp(void);
   static void addUrl(String url, void (*func)(void));
 
-  void setup(void);
+  virtual void setup(void);
   virtual void loop(void);
-  virtual void loopMedium(void);
+
+  virtual void log(byte level, String &msg);
 
   static void pageHeader(String& html, int activeMenu=MENU_OFF);
   static void pageFooter(String &html);
@@ -50,6 +53,8 @@ public:
   static void handleToolsCommands(String &res, String &line);
   static void handleTools(void);
   static void handleLog(void);
+
+  void handleLoginTimeout(void);
 };
 
 extern CoreHttp coreHttp;

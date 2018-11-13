@@ -1,57 +1,46 @@
 #include "CoreDevices.h"
+#include "CoreHttp.h"
 
 std::array<CorePlugins*, deviceMax> CoreDevices::devices;
 #define forEachDevice(func) for( CorePlugins *device : devices ) { if (device) device->func(); }
 
+CoreDevices::CoreDevices(void) : CoreBase("CoreDevices")
+{
+  PANIC_DEBUG();
+  setPriority( priorityDevice );
+}
 void CoreDevices::setup(void)
 {
-#ifdef LOG_LEVEL_PANIC
-  Serial.println(__PRETTY_FUNCTION__);
-#endif
+  PANIC_DEBUG();
+
   coreHttp.addUrl("/devices", CoreDevices::listWeb);
   coreHttp.addUrl("/device", CoreDevices::setWeb);
 
-  coreCommand.addCommand("devices", CoreDevices::listCommand, "List the devices");
-  coreCommand.addCommand("device",  CoreDevices::setCommand,  "Configure or display device");
+  CoreCommands::registerCommand("devices", CoreDevices::listCommand, "List the devices");
+  CoreCommands::registerCommand("device",  CoreDevices::setCommand,  "Configure or display device");
 
-  forEachDevice(setup);
+  for ( CorePlugins *device : devices )
+    if (device) device->setup();
 }
 
-void CoreDevices::loopSlow(void)
+void CoreDevices::loop(void)
 {
-#ifdef LOG_LEVEL_PANIC
-  Serial.println(__PRETTY_FUNCTION__);
-#endif
-  forEachDevice(loopSlow);
-};
+  //  PANIC_DEBUG();
 
-void CoreDevices::loopMedium(void)
-{
-#ifdef LOG_LEVEL_PANIC
-  // Serial.println(__PRETTY_FUNCTION__);
-#endif
-  forEachDevice(loopMedium);
-};
-
-void CoreDevices::loopFast(void)
-{
-#ifdef LOG_LEVEL_PANIC
-  // Serial.println(__PRETTY_FUNCTION__);
-#endif
-  forEachDevice(loopFast);
+  for ( CorePlugins *device : devices )
+    if (device) device->loop();
 };
 
 void CoreDevices::listCommand(String& res, char**)
 {
-#ifdef LOG_LEVEL_PANIC
-  Serial.println(__PRETTY_FUNCTION__);
-#endif
-  res += corePlugins.size();
+  PANIC_DEBUG();
+
+  res += CorePlugins::pluginsNb();
   res += F(" devices :");
 
   uint deviceNo = 0;
   for (CorePlugins* device : coreDevices.devices)
-//  for (int deviceNo = 0; deviceNo < deviceMax; deviceNo++)
+    //  for (int deviceNo = 0; deviceNo < deviceMax; deviceNo++)
   {
     deviceNo++;
     res = F("  ");
@@ -77,27 +66,25 @@ void CoreDevices::listCommand(String& res, char**)
 
 void CoreDevices::setCommand(String& res, char** block)
 {
-#ifdef LOG_LEVEL_PANIC
-  Serial.println(__PRETTY_FUNCTION__);
-#endif
+  PANIC_DEBUG();
+
   int deviceNo = atoi( param(1) );
   String log = F("Device ");
   log += deviceNo;
   log += F(" : ");
-  CoreLog::add(LOG_LEVEL_INFO, log);
-  
+  CoreLog::addLog(LOG_LEVEL_INFO, log);
+
   res += log;
 
 }
 
 void CoreDevices::listWeb(void)
 {
-#ifdef LOG_LEVEL_PANIC
-  Serial.println(__PRETTY_FUNCTION__);
-#endif
+  PANIC_DEBUG();
+
 #ifdef LOG_LEVEL_DEBUG
   String log = F("HTTP : GET /devices");
-  CoreLog::add(LOG_LEVEL_DEBUG, log);
+  CoreLog::addLog(LOG_LEVEL_DEBUG, log);
 #endif
 
   if (!coreHttp.isLoggedIn())
@@ -121,7 +108,7 @@ void CoreDevices::listWeb(void)
     String name = F("None");
     String url = F("redirect('/device?deviceNo=");
     url += deviceNo;
-    
+
     if (devices[ deviceNo ])
     {
       name = devices[ deviceNo ]->pluginName();
@@ -141,21 +128,18 @@ void CoreDevices::listWeb(void)
 
 // Check range excluding max
 #define checkRangeExcluding( val, min, max ) \
-          { if ( (val) < (min) ) (val) = (min); if ( (val) >= (max) ) (val) = (max); }
+  { if ( (val) < (min) ) (val) = (min); if ( (val) >= (max) ) (val) = (max); }
 // Check range including max
 #define checkRangeIncluding( val, min, max ) \
-          { if ( (val) < (min) ) (val) = (min); if ( (val) >  (max) ) (val) = (max); }
+  { if ( (val) < (min) ) (val) = (min); if ( (val) >  (max) ) (val) = (max); }
 
 void CoreDevices::setupPlugin(size_t deviceNo, size_t pluginNo)
 {
-#ifdef LOG_LEVEL_PANIC
-  Serial.println(__PRETTY_FUNCTION__);
-#endif
-  Serial.println(__PRETTY_FUNCTION__);
+  PANIC_DEBUG();
 
   if (deviceNo >= deviceMax) return;
-  if (pluginNo > corePlugins.size()) return;
-  
+  if (pluginNo > CorePlugins::pluginsNb()) return;
+
   Serial.print("deviceNo=");
   Serial.print( deviceNo );
   Serial.print(", new pluginNo=");
@@ -166,7 +150,13 @@ void CoreDevices::setupPlugin(size_t deviceNo, size_t pluginNo)
     if (!devices[ deviceNo ])
     {
       // Create plugin
-      devices[ deviceNo ] = CorePlugins::plugins[ pluginNo ]->factory();
+      for ( CoreBase* base : list )
+        if (base->flags() & flagPlugin)
+        {
+          CorePlugins* plugin = reinterpret_cast<CorePlugins*>(base);
+          if (plugin->pluginNumber() == pluginNo)
+            devices[ deviceNo ] = plugin->factory();
+        }
       Serial.print(" Creation ");
     }
     else
@@ -178,7 +168,14 @@ void CoreDevices::setupPlugin(size_t deviceNo, size_t pluginNo)
       {
         // Change plugin
         delete devices[ deviceNo ];
-        devices[ deviceNo ] = CorePlugins::plugins[ pluginNo ]->factory();
+        for ( CoreBase* base : list )
+          if (base->flags() & flagPlugin)
+          {
+            CorePlugins* plugin = reinterpret_cast<CorePlugins*>(base);
+            if (plugin->pluginNumber() == pluginNo)
+              devices[ deviceNo ] = plugin->factory();
+          }
+
         Serial.print(" Modification ");
       }
       else Serial.print(" Rien à faire ");
@@ -200,9 +197,8 @@ void CoreDevices::setupPlugin(size_t deviceNo, size_t pluginNo)
 
 void CoreDevices::setWeb(void)
 {
-#ifdef LOG_LEVEL_PANIC
-  Serial.println(__PRETTY_FUNCTION__);
-#endif
+  PANIC_DEBUG();
+
   size_t deviceNo = atoi( WebServer.arg("deviceNo").begin() ); // should check for range here !!!
   size_t pluginNo = atoi( WebServer.arg("pluginNo").begin() ); // should check for range here !!!
 
@@ -211,7 +207,7 @@ void CoreDevices::setWeb(void)
   log += deviceNo;
   log += F("&pluginNo=");
   log += pluginNo;
-  CoreLog::add(LOG_LEVEL_DEBUG, log);
+  CoreLog::addLog(LOG_LEVEL_DEBUG, log);
 #endif
 
   if (!coreHttp.isLoggedIn())
@@ -257,14 +253,19 @@ void CoreDevices::setWeb(void)
   coreHttp.select(form, F("pluginNo"), js);
   coreHttp.option(form, "None", 0);
 
-  for (CorePlugins *plugin : corePlugins.plugins)
-    coreHttp.option(form, plugin->toString(), plugin->pluginNumber(), ( plugin->pluginNumber() == pluginNo ));
+  for ( CoreBase* base : list )
+    if (base->flags() & flagPlugin)
+    {
+      CorePlugins* plugin = reinterpret_cast<CorePlugins*>(base);
+      coreHttp.option(form, plugin->toString(), plugin->pluginNumber(), ( plugin->pluginNumber() == pluginNo ));
+    }
 
   coreHttp.select(form);
   coreHttp.tableLine(html, F("Plugin : "), form);
 
-  if (pluginNo)
-    CorePlugins::plugins[ pluginNo - 1 ]->webForm( html );
+  // Affiche les options du plugin. à revoir !!!
+  //  if (pluginNo)
+  //    CorePlugins::pluginList[ pluginNo - 1 ]->webForm( html );
 
   form = "";
   coreHttp.button( form, save,   "document.submit()");

@@ -7,6 +7,7 @@ class myIPAddress : public IPAddress
 {
 public:
   myIPAddress(const char *address);
+  myIPAddress(String *address);
 };
 
 #endif
